@@ -1,34 +1,22 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Auth\PasswordResetController;
-use App\Http\Controllers\Api\Admin\AdminController;
-use App\Http\Controllers\Api\NewsletterController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
-// Auth Routes
-Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::get('me', [AuthController::class, 'me']);
+// Auth routes (public)
+Route::post('/login', [AuthController::class, 'login']);
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
 });
 
-// Password Reset Routes
-Route::prefix('auth')->group(function () {
-    Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink']);
-    Route::post('reset-password', [PasswordResetController::class, 'reset']);
-    Route::get('/reset-password/{token}', function ($token) {
-})->name('password.reset');
+// Health check
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Backend fonctionne!',
+        'timestamp' => now()
+    ]);
 });
-
-// Super Admin Routes
-Route::prefix('admin')->middleware(['auth:api', 'super.admin'])->group(function () {
-    Route::get('dashboard', [AdminController::class, 'dashboard']);
-    Route::get('users', [AdminController::class, 'users']);
-    Route::get('roles', [AdminController::class, 'roles']);
-});
-
-//Newsletter
-Route::post('/newsletters', [NewsletterController::class, 'store']);
-
