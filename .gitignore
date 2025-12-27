@@ -36,3 +36,16 @@ docker-compose.override.yml
 # Temporary files
 *.tmp
 *.temp
+
+# Node
+**/node_modules/
+**/.next/
+**/dist/
+**/.turbo/
+
+# Laravel
+**/vendor/
+**/storage/logs/*.log
+**/storage/framework/cache/**
+**/storage/framework/sessions/**
+**/storage/framework/views/**
