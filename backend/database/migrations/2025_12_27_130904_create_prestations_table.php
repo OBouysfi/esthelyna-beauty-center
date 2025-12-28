@@ -14,7 +14,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('prix', 10, 2);
             $table->integer('duree')->comment('Durée en minutes');
-            $table->enum('categorie', ['Soin', 'Epilation', 'Minceur', 'Tatouage', 'Pack'])->default('Soin');
+            $table->string('categorie')->default('Soin');
             $table->boolean('actif')->default(true);
             $table->timestamps();
             $table->softDeletes();
