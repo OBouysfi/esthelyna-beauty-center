@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter} from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import ModalPaiement from '@/components/ModalPaiement';
 import api from '@/lib/api';
-import { Suspense } from 'react';
 import Swal from 'sweetalert2';
 import { 
   CreditCardIcon, 
@@ -22,7 +21,6 @@ import {
 
 export default function PaiementsPage() {
   const router = useRouter();
-  const highlightId = searchParams?.get('highlight');
   
   const [paiements, setPaiements] = useState([]);
   const [filteredPaiements, setFilteredPaiements] = useState([]);
@@ -56,17 +54,6 @@ export default function PaiementsPage() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    if (highlightId) {
-      setTimeout(() => {
-        const element = document.getElementById(`paiement-${highlightId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          element.classList.add('ring-4', 'ring-amber-500');
-        }
-      }, 500);
-    }
-  }, [highlightId, paginatedPaiements]);
 
   useEffect(() => {
     if (!loading) {
@@ -631,8 +618,7 @@ export default function PaiementsPage() {
                   {paginatedPaiements.map((paiement: any) => (
                     <tr
                       key={paiement.id}
-                      id={`paiement-${paiement.id}`}
-                      className={`hover:bg-gray-50 transition-colors ${highlightId && paiement.id === parseInt(highlightId) ? 'bg-amber-50' : ''}`}
+className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-3 py-2">
                         <p className="text-xs text-gray-900">{new Date(paiement.date_paiement).toLocaleDateString('fr-FR')}</p>
