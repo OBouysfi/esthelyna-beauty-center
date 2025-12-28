@@ -105,7 +105,7 @@ export default function StatistiquesPage() {
       tooltip: {
         backgroundColor: '#1a1a1a',
         padding: 12,
-        titleFont: { size: 12, family: 'Poppins', weight: '600' },
+        titleFont: { size: 12, family: 'Poppins', weight: 'bold' as const },
         bodyFont: { size: 11, family: 'Poppins' },
         callbacks: {
           label: function (context: any) {
@@ -143,7 +143,7 @@ export default function StatistiquesPage() {
       tooltip: {
         backgroundColor: '#1a1a1a',
         padding: 12,
-        titleFont: { size: 12, family: 'Poppins', weight: '600' },
+        titleFont: { size: 12, family: 'Poppins', weight: 'bold' as const },
         bodyFont: { size: 11, family: 'Poppins' },
         callbacks: {
           label: function (context: any) {

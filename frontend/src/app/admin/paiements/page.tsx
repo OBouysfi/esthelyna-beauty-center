@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import ModalPaiement from '@/components/ModalPaiement';
 import api from '@/lib/api';
+import { Suspense } from 'react';
 import Swal from 'sweetalert2';
 import { 
   CreditCardIcon, 
@@ -21,7 +22,6 @@ import {
 
 export default function PaiementsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const highlightId = searchParams?.get('highlight');
   
   const [paiements, setPaiements] = useState([]);
