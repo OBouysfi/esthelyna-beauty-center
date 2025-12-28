@@ -100,3 +100,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/statistiques/dashboard', [StatistiqueController::class, 'dashboard']);
     Route::get('/statistiques/export', [StatistiqueController::class, 'export']);
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/profile/password', [AuthController::class, 'updatePassword']);
+});

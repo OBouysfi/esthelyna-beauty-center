@@ -225,10 +225,10 @@ export default function PaiementsPage() {
             style="font-size: 14px;"
           >
           <select id="methode" class="swal2-input" style="font-size: 14px;">
-            <option value="Espèces">💵 Espèces</option>
-            <option value="Carte">💳 Carte</option>
-            <option value="Virement">🏦 Virement</option>
-            <option value="Chèque">📝 Chèque</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Carte">Carte</option>
+            <option value="Virement">Virement</option>
+            <option value="Chèque">Chèque</option>
           </select>
         </div>
       `,
@@ -475,11 +475,11 @@ export default function PaiementsPage() {
 
   const getMethodeIcon = (methode: string) => {
     switch (methode) {
-      case 'Espèces': return '💵';
-      case 'Carte': return '💳';
-      case 'Virement': return '🏦';
-      case 'Chèque': return '📝';
-      default: return '💰';
+      case 'Espèces': return '';
+      case 'Carte': return '';
+      case 'Virement': return '';
+      case 'Chèque': return '';
+      default: return '';
     }
   };
 

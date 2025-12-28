@@ -114,7 +114,7 @@ export default function Sidebar({ collapsed, setCollapsed }: any) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-3">
+        {/* <div className="border-t border-gray-200 p-3">
           <Link
             href="/admin/settings"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-900 hover:bg-gray-100 transition-colors ${collapsed ? 'justify-center' : ''}`}
@@ -122,7 +122,7 @@ export default function Sidebar({ collapsed, setCollapsed }: any) {
             <Cog6ToothIcon className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="font-medium">Paramètres</span>}
           </Link>
-        </div>
+        </div> */}
 
         {/* Toggle Button */}
         <button

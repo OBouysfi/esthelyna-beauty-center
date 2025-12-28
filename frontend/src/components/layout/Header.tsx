@@ -26,8 +26,12 @@ export default function Header({ collapsed }: any) {
       <div className="h-16 px-6 flex items-center justify-between">
         {/* Left */}
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">Bonjour, {user?.prenom}</h1>
-          <p className="text-xs text-gray-500">Bienvenue dans votre espace</p>
+          <h1 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Poppins' }}>
+            Bonjour, {user?.prenom}
+          </h1>
+          <p className="text-xs text-gray-500" style={{ fontFamily: 'Poppins' }}>
+            Bienvenue dans votre espace
+          </p>
         </div>
 
         {/* Right - Profile Menu */}
@@ -37,11 +41,15 @@ export default function Header({ collapsed }: any) {
             className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
           >
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.prenom} {user?.nom}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-gray-900" style={{ fontFamily: 'Poppins' }}>
+                {user?.prenom} {user?.nom}
+              </p>
+              <p className="text-xs text-gray-500 capitalize" style={{ fontFamily: 'Poppins' }}>
+                {user?.role}
+              </p>
             </div>
             <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center">
-              <span className="text-amber-700 font-semibold text-sm">
+              <span className="text-amber-700 font-semibold text-sm" style={{ fontFamily: 'Poppins' }}>
                 {user?.prenom?.charAt(0)}{user?.nom?.charAt(0)}
               </span>
             </div>
@@ -53,18 +61,26 @@ export default function Header({ collapsed }: any) {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push('/admin/profile');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  style={{ fontFamily: 'Poppins' }}
+                >
                   <UserIcon className="h-5 w-5" />
                   Mon Profil
                 </button>
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                {/* <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors" style={{ fontFamily: 'Poppins' }}>
                   <Cog6ToothIcon className="h-5 w-5" />
                   Paramètres
-                </button>
+                </button> */}
                 <div className="my-1 border-t border-gray-200" />
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  style={{ fontFamily: 'Poppins' }}
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5" />
                   Déconnexion

@@ -302,10 +302,10 @@ export default function ModalAttribuerPack({ onClose, onSuccess }: ModalProps) {
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Méthode de paiement</label>
                   <select value={methodePaiement} onChange={(e) => setMethodePaiement(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-                    <option value="Espèces">💵 Espèces</option>
-                    <option value="Carte">💳 Carte</option>
-                    <option value="Virement">🏦 Virement</option>
-                    <option value="Chèque">📝 Chèque</option>
+                    <option value="Espèces">Espèces</option>
+                    <option value="Carte">Carte</option>
+                    <option value="Virement">Virement</option>
+                    <option value="Chèque">Chèque</option>
                   </select>
                 </div>
               </div>

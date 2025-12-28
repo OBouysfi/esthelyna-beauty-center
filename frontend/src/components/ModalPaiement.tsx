@@ -478,10 +478,10 @@ export default function ModalPaiement({ paiement, onClose, onSuccess }: ModalPro
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     required
                   >
-                    <option value="Espèces">💵 Espèces</option>
-                    <option value="Carte">💳 Carte</option>
-                    <option value="Virement">🏦 Virement</option>
-                    <option value="Chèque">📝 Chèque</option>
+                    <option value="Espèces">Espèces</option>
+                    <option value="Carte">Carte</option>
+                    <option value="Virement">Virement</option>
+                    <option value="Chèque">Chèque</option>
                   </select>
                 </div>
               </div>
