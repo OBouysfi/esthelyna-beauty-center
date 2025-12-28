@@ -391,8 +391,6 @@ export default function PaiementsPage() {
             <div class="info-card">
               <h3>Informations Client</h3>
               <div class="client-name">${paiement.client?.prenom} ${paiement.client?.nom}</div>
-              ${paiement.client?.telephone ? `<p>Tél: ${paiement.client.telephone}</p>` : ''}
-              ${paiement.client?.email ? `<p>Email: ${paiement.client.email}</p>` : ''}
             </div>
             <div class="info-card">
               <h3>Détails de la Transaction</h3>

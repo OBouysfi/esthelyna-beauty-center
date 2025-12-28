@@ -9,6 +9,7 @@ use App\Http\Controllers\PackController;
 use App\Http\Controllers\ClientPackController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\StatistiqueController;
 
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -90,4 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/client-packs/stats', [ClientPackController::class, 'stats']);
     Route::post('/client-packs', [ClientPackController::class, 'store']);
     Route::post('/client-packs/{clientPack}/consommer', [ClientPackController::class, 'consommerSeance']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/statistiques/dashboard', [StatistiqueController::class, 'dashboard']);
+    Route::get('/statistiques/export', [StatistiqueController::class, 'export']);
 });

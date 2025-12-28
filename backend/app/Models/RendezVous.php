@@ -49,4 +49,10 @@ class RendezVous extends Model
     {
         return $this->belongsTo(User::class, 'assistante_id');
     }
+
+    // AJOUTE CETTE RELATION!
+    public function paiement()
+    {
+        return $this->hasOne(Paiement::class, 'rendez_vous_id');
+    }
 }
