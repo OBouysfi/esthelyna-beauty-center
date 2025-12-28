@@ -123,23 +123,24 @@ export default function CalendrierPage() {
 
   const eventStyleGetter = (event: any) => {
     const rdv = event.resource;
-    let backgroundColor = '#d97706'; // amber-600
+    let backgroundColor = '#d97706'; // Couleur par défaut
     
     switch (rdv?.statut) {
       case 'Planifié':
-        backgroundColor = '#3b82f6'; // blue-500
+      case 'En attente':
+        backgroundColor = 'rgb(10, 49, 135)'; // Bleu foncé
         break;
       case 'Confirmé':
-        backgroundColor = '#10b981'; // green-500
+        backgroundColor = 'rgb(13, 69, 18)'; // Vert foncé
         break;
       case 'Terminé':
-        backgroundColor = '#6b7280'; // gray-500
+        backgroundColor = 'rgb(0, 0, 0)'; // Noir
         break;
       case 'Annulé':
-        backgroundColor = '#ef4444'; // red-500
+        backgroundColor = 'rgb(188, 0, 0)'; // Rouge foncé
         break;
       default:
-        backgroundColor = '#d97706';
+        backgroundColor = 'rgb(10, 49, 135)'; // Bleu par défaut
     }
 
     return {
@@ -193,27 +194,27 @@ export default function CalendrierPage() {
       </div>
 
       {/* Légende */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-        <p className="text-xs font-semibold text-gray-700 mb-2">Légende:</p>
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <span className="text-xs text-gray-600">Planifié</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span className="text-xs text-gray-600">Confirmé</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-gray-500 rounded"></div>
-            <span className="text-xs text-gray-600">Terminé</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span className="text-xs text-gray-600">Annulé</span>
-          </div>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+      <p className="text-xs font-semibold text-gray-700 mb-2">Légende:</p>
+      <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(10, 49, 135)' }}></div>
+          <span className="text-xs text-gray-600">Planifié</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(13, 69, 18)' }}></div>
+          <span className="text-xs text-gray-600">Confirmé</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(0, 0, 0)' }}></div>
+          <span className="text-xs text-gray-600">Terminé</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(188, 0, 0)' }}></div>
+          <span className="text-xs text-gray-600">Annulé</span>
         </div>
       </div>
+    </div>
 
       {/* Calendar */}
       {loading ? (
@@ -269,89 +270,153 @@ export default function CalendrierPage() {
         }
         
         .rbc-header {
-          padding: 12px 4px;
+          padding: 14px 8px;
           font-weight: 600;
-          font-size: 13px;
-          color: #111827;
-          background-color: #f9fafb;
-          border-bottom: 2px solid #e5e7eb;
+          font-size: 11px;
+          color: #6b7280;
+          background-color: #ffffff;
+          border-bottom: 1px solid #f3f4f6;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
         
         .rbc-today {
-          background-color: #fef3c7;
+          background-color: #fffbeb;
         }
         
         .rbc-off-range-bg {
-          background-color: #f9fafb;
+          background-color: #fafafa;
         }
         
         .rbc-date-cell {
-          padding: 4px 8px;
-          font-size: 13px;
+          padding: 6px 10px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #1f2937;
         }
         
         .rbc-button-link {
           font-size: 13px;
-          color: #374151;
+          color: #1f2937;
+          font-weight: 500;
         }
         
         .rbc-toolbar {
-          padding: 12px 0;
-          margin-bottom: 16px;
+          padding: 0;
+          margin-bottom: 20px;
           font-size: 14px;
+          font-family: 'Poppins', sans-serif;
         }
         
         .rbc-toolbar button {
-          padding: 6px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          background-color: white;
+          padding: 8px 16px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background-color: #ffffff;
           color: #374151;
           font-size: 13px;
           font-weight: 500;
-          transition: all 0.2s;
+          font-family: 'Poppins', sans-serif;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         .rbc-toolbar button:hover {
-          background-color: #f3f4f6;
+          background-color: #f9fafb;
           border-color: #d97706;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .rbc-toolbar button.rbc-active {
-          background: linear-gradient(to right, hsl(43, 74%, 49%), hsl(35, 70%, 45%));
-          color: white;
-          border-color: transparent;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: #ffffff;
+          border-color: #f59e0b;
+          box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
         }
         
         .rbc-event {
-          padding: 2px 4px;
-          border-radius: 4px;
+          padding: 4px 8px;
+          border-radius: 6px;
           cursor: pointer;
+          font-family: 'Poppins', sans-serif;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: none;
         }
         
         .rbc-event:hover {
           opacity: 1;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          transform: translateY(-1px);
+          transition: all 0.2s ease;
         }
         
         .rbc-show-more {
           background-color: transparent;
-          color: #d97706;
+          color: #f59e0b;
           font-weight: 600;
           font-size: 11px;
+          font-family: 'Poppins', sans-serif;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+        
+        .rbc-show-more:hover {
+          background-color: #fef3c7;
         }
         
         .rbc-month-view {
           border: 1px solid #e5e7eb;
-          border-radius: 8px;
+          border-radius: 12px;
           overflow: hidden;
+          background: #ffffff;
         }
         
         .rbc-day-bg {
-          border-left: 1px solid #e5e7eb;
+          border-left: 1px solid #f3f4f6;
+          transition: background-color 0.15s ease;
+        }
+        
+        .rbc-day-bg:hover {
+          background-color: #fafafa;
         }
         
         .rbc-time-slot {
-          min-height: 40px;
+          min-height: 50px;
+          border-top: 1px solid #f9fafb;
+        }
+        
+        .rbc-time-view {
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+        
+        .rbc-time-header {
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .rbc-time-content {
+          border-top: 1px solid #f3f4f6;
+        }
+        
+        .rbc-current-time-indicator {
+          background-color: #f59e0b;
+          height: 2px;
+        }
+        
+        .rbc-label {
+          font-family: 'Poppins', sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          color: #9ca3af;
+        }
+        
+        .rbc-month-row {
+          border-top: 1px solid #f3f4f6;
+        }
+        
+        .rbc-selected {
+          background-color: #fef3c7 !important;
         }
       `}</style>
     </AdminLayout>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import Swal from 'sweetalert2';
-import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon,PlusIcon } from '@heroicons/react/24/outline';
 
 interface ModalProps {
   rdv?: any;
@@ -195,81 +195,93 @@ export default function ModalNouveauRDV({ rdv, onClose, onSuccess }: ModalProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">
-              {rdv ? 'Modifier RDV' : 'Nouveau RDV'}
-            </h2>
-            {!rdv && <p className="text-xs text-gray-500 mt-0.5">Étape {step} sur 3</p>}
-          </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-            <XMarkIcon className="h-5 w-5 text-gray-600" />
-          </button>
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold text-gray-900">
+            {rdv ? 'Modifier RDV' : 'Nouveau RDV'}
+          </h2>
+          {!rdv && <p className="text-xs text-gray-500 mt-0.5">Étape {step} sur 3</p>}
         </div>
+        <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+          <XMarkIcon className="h-5 w-5 text-gray-600" />
+        </button>
+      </div>
 
-        {/* Progress Bar */}
-        {!rdv && (
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              {[1, 2, 3].map((s) => (
-                <div
-                  key={s}
-                  className={`flex-1 h-1.5 rounded-full transition-colors ${
-                    s <= step ? 'bg-amber-500' : 'bg-gray-200'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 1: Sélection Client */}
-        {step === 1 && (
-          <div className="p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Sélectionnez un client</h3>
-            
-            <div className="relative mb-3">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                value={clientSearch}
-                onChange={(e) => setClientSearch(e.target.value)}
-                placeholder="Rechercher par nom, téléphone..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                autoFocus
+      {/* Progress Bar */}
+      {!rdv && (
+        <div className="px-5 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`flex-1 h-1.5 rounded-full transition-colors ${
+                  s <= step ? 'bg-amber-500' : 'bg-gray-200'
+                }`}
               />
-            </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-            {searchingClients && (
-              <p className="text-xs text-gray-500 text-center py-4">Recherche...</p>
-            )}
+      {/* Step 1: Sélection Client */}
+      {step === 1 && (
+        <div className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-900">Sélectionnez un client</h3>
+            <button
+              type="button"
+              onClick={() => {
+                window.open('/admin/clients', '_blank');
+              }}
+              className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+            >
+              <PlusIcon className="h-3 w-3" />
+              Nouveau client
+            </button>
+          </div>
+          
+          <div className="relative mb-3">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={clientSearch}
+              onChange={(e) => setClientSearch(e.target.value)}
+              placeholder="Rechercher par nom, téléphone..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              autoFocus
+            />
+          </div>
 
-            {!searchingClients && clientResults.length === 0 && clientSearch.length >= 2 && (
-              <p className="text-xs text-gray-500 text-center py-4">Aucun client trouvé</p>
-            )}
+          {searchingClients && (
+            <p className="text-xs text-gray-500 text-center py-4">Recherche...</p>
+          )}
 
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {clientResults.map((client: any) => (
-                <button
-                  key={client.id}
-                  onClick={() => {
-                    setSelectedClient(client);
-                    setStep(2);
-                  }}
-                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center">
-                      <span className="text-amber-700 font-semibold text-xs">
-                        {client.prenom[0]}{client.nom[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{client.prenom} {client.nom}</p>
-                      <p className="text-xs text-gray-600">{client.telephone}</p>
+          {!searchingClients && clientResults.length === 0 && clientSearch.length >= 2 && (
+            <p className="text-xs text-gray-500 text-center py-4">Aucun client trouvé</p>
+          )}
+
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {clientResults.map((client: any) => (
+              <button
+                key={client.id}
+                onClick={() => {
+                  setSelectedClient(client);
+                  setStep(2);
+                }}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center">
+                    <span className="text-amber-700 font-semibold text-xs">
+                      {client.prenom[0]}{client.nom[0]}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{client.prenom} {client.nom}</p>
+                    <p className="text-xs text-gray-600">{client.telephone}</p>
                     </div>
                   </div>
                 </button>
