@@ -7,7 +7,7 @@ use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\PrestationController;
 use App\Http\Controllers\PackController;
 use App\Http\Controllers\CategorieController;
-
+use App\Http\Controllers\PaiementController;
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -62,4 +62,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/categories/{categorie}', [CategorieController::class, 'update']);
     Route::patch('/categories/{categorie}/toggle', [CategorieController::class, 'toggleActif']);
     Route::delete('/categories/{categorie}', [CategorieController::class, 'destroy']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Paiements
+    Route::get('/paiements/stats', [PaiementController::class, 'stats']);
+    Route::get('/paiements', [PaiementController::class, 'index']);
+    Route::post('/paiements', [PaiementController::class, 'store']);
+    Route::put('/paiements/{paiement}', [PaiementController::class, 'update']);
+    Route::delete('/paiements/{paiement}', [PaiementController::class, 'destroy']);
+    Route::post('/paiements/{paiement}/ajouter', [PaiementController::class, 'ajouterPaiement']);
+    Route::get('/paiements/analytics', [PaiementController::class, 'analytics']);
 });
