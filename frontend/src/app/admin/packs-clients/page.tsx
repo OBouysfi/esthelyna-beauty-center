@@ -258,7 +258,7 @@ export default function PacksClientsPage() {
                   </div>
 
                   {/* Infos */}
-                  <div className="grid grid-cols-4 gap-3 text-xs">
+                    <div className="grid grid-cols-4 gap-3 text-xs">
                     <div>
                         <p className="text-gray-500">Acheté le</p>
                         <p className="font-medium text-gray-900">
@@ -287,31 +287,113 @@ export default function PacksClientsPage() {
                         </p>
                     </div>
                     </div>
-
-                   {/* Alerte si paiement partiel */}
-                    {clientPack.paiement && clientPack.paiement.reste > 0 && (
-                    <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-2">
-                        <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <p className="text-xs text-red-700 mb-1">
-                            💳 <strong>Reste à payer: {clientPack.paiement.reste.toFixed(2)} DH</strong>
-                            </p>
-                            <p className="text-xs text-red-600">
-                            Statut: <span className="font-semibold">{clientPack.paiement.statut}</span>
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => {
-                            // Ouvre la page paiements avec ce paiement spécifique
-                            window.open(`/admin/paiements?highlight=${clientPack.paiement.id}`, '_blank');
-                            }}
-                            className="px-2 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition-colors"
-                        >
-                            Payer
-                        </button>
-                        </div>
+                   
+                {/* Alerte si paiement partiel */}
+                {clientPack.montant_total && clientPack.montant_paye < clientPack.montant_total && (
+                <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-2">
+                    <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                        <p className="text-xs text-red-700 mb-1">
+                        💳 <strong>Reste à payer: {(clientPack.montant_total - clientPack.montant_paye).toFixed(2)} DH</strong>
+                        </p>
+                        <p className="text-xs text-red-600">
+                        {clientPack.paiement ? `Statut: ${clientPack.paiement.statut}` : 'Complétez le paiement'}
+                        </p>
                     </div>
-                    )}
+                    <button
+                        onClick={async () => {
+                        // Si pas de paiement associé, affiche un message
+                        if (!clientPack.paiement) {
+                            Swal.fire({
+                            icon: 'warning',
+                            title: 'Aucun paiement associé',
+                            text: 'Veuillez aller dans la page Paiements pour compléter le paiement',
+                            confirmButtonText: 'OK',
+                            buttonsStyling: false,
+                            customClass: {
+                                confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm'
+                            }
+                            });
+                            return;
+                        }
+
+                        const { value: formValues } = await Swal.fire({
+                            title: 'Ajouter un paiement',
+                            html: `
+                            <div class="text-left">
+                                <p class="text-sm mb-2">Reste à payer: <strong class="text-red-600">${(clientPack.montant_total - clientPack.montant_paye).toFixed(2)} DH</strong></p>
+                                <input id="montant" type="number" class="swal2-input" placeholder="Montant" min="0" max="${clientPack.montant_total - clientPack.montant_paye}" step="0.01" style="font-size: 14px;">
+                                <select id="methode" class="swal2-input" style="font-size: 14px;">
+                                <option value="Espèces">💵 Espèces</option>
+                                <option value="Carte">💳 Carte</option>
+                                <option value="Virement">🏦 Virement</option>
+                                <option value="Chèque">📝 Chèque</option>
+                                </select>
+                            </div>
+                            `,
+                            focusConfirm: false,
+                            showCancelButton: true,
+                            confirmButtonText: 'Ajouter',
+                            cancelButtonText: 'Annuler',
+                            buttonsStyling: false,
+                            customClass: {
+                            confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm mr-2',
+                            cancelButton: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium text-sm',
+                            title: 'text-base font-semibold text-gray-900',
+                            },
+                            preConfirm: () => {
+                            const montant = (document.getElementById('montant') as HTMLInputElement).value;
+                            const methode = (document.getElementById('methode') as HTMLSelectElement).value;
+                            
+                            const reste = clientPack.montant_total - clientPack.montant_paye;
+                            
+                            if (!montant || parseFloat(montant) <= 0) {
+                                Swal.showValidationMessage('Veuillez entrer un montant valide');
+                                return false;
+                            }
+                            
+                            if (parseFloat(montant) > reste) {
+                                Swal.showValidationMessage(`Le montant ne peut pas dépasser ${reste.toFixed(2)} DH`);
+                                return false;
+                            }
+                            
+                            return { montant: parseFloat(montant), methode };
+                            }
+                        });
+
+                        if (formValues) {
+                            try {
+                            await api.post(`/paiements/${clientPack.paiement.id}/ajouter`, formValues);
+                            
+                            await loadData();
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Paiement ajouté!',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            } catch (error: any) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: error.response?.data?.message || 'Impossible d\'ajouter le paiement',
+                                confirmButtonText: 'OK',
+                                buttonsStyling: false,
+                                customClass: {
+                                confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm'
+                                }
+                            });
+                            }
+                        }
+                        }}
+                        className="px-2 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition-colors"
+                    >
+                        Payer
+                    </button>
+                    </div>
+                </div>
+                )}
 
                   {/* Historique toggle */}
                   {clientPack.seances && clientPack.seances.length > 0 && (

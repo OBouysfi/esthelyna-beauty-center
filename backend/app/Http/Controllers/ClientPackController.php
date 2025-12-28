@@ -11,7 +11,7 @@ class ClientPackController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ClientPack::with(['client', 'pack', 'seances.prestation', 'paiement']); // Ajoute 'paiement'
+        $query = ClientPack::with(['client', 'pack', 'seances.prestation', 'paiement']);
 
         if ($request->has('client_id')) {
             $query->where('client_id', $request->client_id);

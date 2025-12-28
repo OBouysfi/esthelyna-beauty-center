@@ -12,6 +12,7 @@ class ClientPack extends Model
     protected $fillable = [
         'client_id',
         'pack_id',
+        'paiement_id',
         'date_achat',
         'date_expiration',
         'nombre_seances_total',
