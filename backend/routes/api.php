@@ -6,8 +6,10 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\PrestationController;
 use App\Http\Controllers\PackController;
+use App\Http\Controllers\ClientPackController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\PaiementController;
+
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -74,4 +76,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/paiements/{paiement}', [PaiementController::class, 'destroy']);
     Route::post('/paiements/{paiement}/ajouter', [PaiementController::class, 'ajouterPaiement']);
     Route::get('/paiements/analytics', [PaiementController::class, 'analytics']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Packs (catalogue)
+    Route::get('/packs', [PackController::class, 'index']);
+    Route::post('/packs', [PackController::class, 'store']);
+    Route::put('/packs/{pack}', [PackController::class, 'update']);
+    Route::delete('/packs/{pack}', [PackController::class, 'destroy']);
+    Route::patch('/packs/{pack}/toggle', [PackController::class, 'toggleActif']);
+    // Client Packs (packs achetés)
+    Route::get('/client-packs', [ClientPackController::class, 'index']);
+    Route::get('/client-packs/stats', [ClientPackController::class, 'stats']);
+    Route::post('/client-packs', [ClientPackController::class, 'store']);
+    Route::post('/client-packs/{clientPack}/consommer', [ClientPackController::class, 'consommerSeance']);
 });

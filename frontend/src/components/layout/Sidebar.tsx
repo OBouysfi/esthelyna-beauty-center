@@ -13,6 +13,8 @@ import {
   Cog6ToothIcon,
   RectangleStackIcon,
   CalendarDaysIcon,
+  CubeIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 
 const mainNavigation = [
@@ -21,6 +23,8 @@ const mainNavigation = [
   { name: 'Clients', href: '/admin/clients', icon: UsersIcon },
   { name: 'Rendez-vous', href: '/admin/rendez-vous', icon: CalendarIcon },
   { name: 'Prestations', href: '/admin/prestations', icon: SparklesIcon },
+  { name: 'Packs', href: '/admin/packs', icon: CubeIcon },
+  { name: 'Packs Clients', href: '/admin/packs-clients', icon: ClipboardDocumentListIcon },
 ];
 
 const adminNavigation = [
@@ -82,7 +86,7 @@ export default function Sidebar({ collapsed, setCollapsed }: any) {
 
           {/* ADMIN Section */}
           {!collapsed && (
-            <div className="px-4 mt-6 mb-2">
+            <div className="px-4 mb-2 mt-6">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">ADMIN</p>
             </div>
           )}
