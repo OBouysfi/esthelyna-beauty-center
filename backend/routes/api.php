@@ -91,6 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/client-packs/stats', [ClientPackController::class, 'stats']);
     Route::post('/client-packs', [ClientPackController::class, 'store']);
     Route::post('/client-packs/{clientPack}/consommer', [ClientPackController::class, 'consommerSeance']);
+
+    Route::delete('/seances/{id}', [ClientPackController::class, 'deleteSeance']);
+    Route::put('/seances/{id}', [ClientPackController::class, 'updateSeance']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

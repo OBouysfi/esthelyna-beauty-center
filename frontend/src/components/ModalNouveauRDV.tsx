@@ -314,7 +314,7 @@ export default function ModalNouveauRDV({ rdv, onClose, onSuccess }: ModalProps)
               >
                 Prestation
               </button>
-              <button
+              {/* <button
                 onClick={() => setServiceType('pack')}
                 className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   serviceType === 'pack'
@@ -323,7 +323,7 @@ export default function ModalNouveauRDV({ rdv, onClose, onSuccess }: ModalProps)
                 }`}
               >
                 Pack
-              </button>
+              </button> */}
             </div>
 
             {/* Prestations */}

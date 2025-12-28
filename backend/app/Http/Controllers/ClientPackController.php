@@ -6,6 +6,7 @@ use App\Models\ClientPack;
 use App\Models\Seance;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ClientPackController extends Controller
 {
@@ -134,5 +135,72 @@ class ClientPackController extends Controller
             'termines' => $termines,
             'expires' => $expires,
         ]);
+    }
+
+    public function deleteSeance($id)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $seance = \App\Models\Seance::findOrFail($id);
+            $clientPackId = $seance->client_pack_id;
+            
+            // Supprimer la séance
+            $seance->delete();
+            
+            // Recalculer le nombre de séances consommées et restantes
+            $clientPack = ClientPack::findOrFail($clientPackId);
+            $nbSeancesConsommees = \App\Models\Seance::where('client_pack_id', $clientPackId)->count();
+            
+            $clientPack->nombre_seances_consommees = $nbSeancesConsommees;
+            $clientPack->nombre_seances_restantes = $clientPack->nombre_seances_total - $nbSeancesConsommees;
+            
+            // Mettre à jour le statut si nécessaire
+            if ($clientPack->nombre_seances_restantes > 0 && $clientPack->statut === 'Terminé') {
+                $clientPack->statut = 'En cours';
+            }
+            
+            $clientPack->save();
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Séance supprimée avec succès',
+                'client_pack' => $clientPack->load('seances.prestation')
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur lors de la suppression',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateSeance(Request $request, $id)
+    {
+        try {
+            $seance = \App\Models\Seance::findOrFail($id);
+            
+            $validated = $request->validate([
+                'prestation_id' => 'nullable|exists:prestations,id',
+                'date_seance' => 'required|date',
+                'notes' => 'nullable|string'
+            ]);
+            
+            $seance->update($validated);
+            
+            return response()->json([
+                'message' => 'Séance modifiée avec succès',
+                'seance' => $seance->load('prestation')
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la modification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
