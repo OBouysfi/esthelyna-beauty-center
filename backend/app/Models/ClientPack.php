@@ -42,11 +42,11 @@ class ClientPack extends Model
 
     public function seances()
     {
-        return $this->hasMany(Seance::class);
+        return $this->hasMany(Seance::class)->orderBy('numero_seance', 'asc');
     }
 
-    public function paiement()
+    public function paiements()
     {
-        return $this->belongsTo(Paiement::class);
+        return $this->hasMany(Paiement::class)->orderBy('date_paiement', 'desc');
     }
 }

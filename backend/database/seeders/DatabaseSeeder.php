@@ -4,20 +4,17 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Client;
-use App\Models\Prestation;
 use App\Models\Pack;
-use App\Models\Categorie;  // ← AJOUTE CETTE LIGNE
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Users
+        // Admins
         User::create([
             'nom' => 'Admin',
-            'prenom' => 'Esthelyna',
+            'prenom' => 'Epiloria',
             'email' => 'bouysfi.othman@gmail.com',
             'password' => Hash::make('123456789'),
             'telephone' => '0612345678',
@@ -26,88 +23,70 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::create([
-            'nom' => 'Martin',
-            'prenom' => 'Sophie',
-            'email' => 'assistante@esthelyna.com',
-            'password' => Hash::make('password'),
+            'nom' => 'Manager',
+            'prenom' => 'Beauty',
+            'email' => 'manager@epiloria.ma',
+            'password' => Hash::make('123456789'),
             'telephone' => '0623456789',
-            'role' => 'assistante',
+            'role' => 'admin',
             'actif' => true,
         ]);
 
-        // Clients
-        $clients = [
-            ['nom' => 'Martin', 'prenom' => 'Sophie', 'telephone' => '0612345678', 'email' => 'sophie.martin@email.com'],
-            ['nom' => 'Dubois', 'prenom' => 'Isabelle', 'telephone' => '0623456789', 'email' => 'isabelle.dubois@email.com'],
-            ['nom' => 'Laurent', 'prenom' => 'Marie', 'telephone' => '0634567890', 'email' => 'marie.laurent@email.com'],
-            ['nom' => 'Petit', 'prenom' => 'Camille', 'telephone' => '0645678901', 'email' => 'camille.petit@email.com'],
-            ['nom' => 'Bernard', 'prenom' => 'Julie', 'telephone' => '0656789012', 'email' => 'julie.bernard@email.com'],
-            ['nom' => 'Thomas', 'prenom' => 'Emma', 'telephone' => '0667890123', 'email' => 'emma.thomas@email.com'],
-            ['nom' => 'Robert', 'prenom' => 'Léa', 'telephone' => '0678901234', 'email' => 'lea.robert@email.com'],
-            ['nom' => 'Richard', 'prenom' => 'Chloé', 'telephone' => '0689012345', 'email' => 'chloe.richard@email.com'],
-        ];
-
-        foreach ($clients as $client) {
-            Client::create($client);
-        }
-
-        // Catégories
-        $categories = [
-            ['nom' => 'Soin', 'ordre' => 1],
-            ['nom' => 'Épilation', 'ordre' => 2],
-            ['nom' => 'Massage', 'ordre' => 3],
-            ['nom' => 'Minceur', 'ordre' => 4],
-            ['nom' => 'Anti-âge', 'ordre' => 5],
-            ['nom' => 'Hydratation', 'ordre' => 6],
-            ['nom' => 'Maquillage', 'ordre' => 7],
-            ['nom' => 'Manucure', 'ordre' => 8],
-            ['nom' => 'Pédicure', 'ordre' => 9],
-            ['nom' => 'Autre', 'ordre' => 10],
-        ];
-
-        foreach ($categories as $cat) {
-            Categorie::create($cat);
-        }
-
-        // Prestations
-        $prestations = [
-            ['nom' => 'Facial Treatment Premium', 'categorie' => 'Soin', 'prix' => 400, 'duree' => 90],
-            ['nom' => 'Anti-Aging Package', 'categorie' => 'Anti-âge', 'prix' => 600, 'duree' => 120],
-            ['nom' => 'Hydrating Facial', 'categorie' => 'Hydratation', 'prix' => 300, 'duree' => 60],
-            ['nom' => 'Luxury Spa Treatment', 'categorie' => 'Soin', 'prix' => 800, 'duree' => 150],
-            ['nom' => 'Épilation Complète', 'categorie' => 'Épilation', 'prix' => 250, 'duree' => 60],
-            ['nom' => 'Massage Relaxant', 'categorie' => 'Massage', 'prix' => 350, 'duree' => 90],
-            ['nom' => 'Soin Minceur', 'categorie' => 'Minceur', 'prix' => 500, 'duree' => 90],
-        ];
-
-        foreach ($prestations as $prestation) {
-            Prestation::create($prestation);
-        }
-
-        // Packs
+        // Packs selon l'image Excel
         $packs = [
-            [
-                'nom' => 'Pack Minceur 10 séances',
-                'prix' => 4000,
-                'nombre_seances_total' => 10,
-                'description' => 'Programme minceur complet'
-            ],
-            [
-                'nom' => 'Pack Anti-âge 6 séances',
-                'prix' => 3000,
-                'nombre_seances_total' => 6,
-                'description' => 'Cure anti-âge intensive'
-            ],
+            // CAVITATION
+            ['nom' => 'PACK AMIN', 'categorie' => 'cavitation', 'zones' => null, 'prix' => 2000, 'nombre_seances' => 1, 'duree_seance' => 60],
+            ['nom' => 'PACK 10 S CAVITATION', 'categorie' => 'cavitation', 'zones' => null, 'prix' => 2000, 'nombre_seances' => 10, 'duree_seance' => 60],
+            ['nom' => 'PACK 15 S CAVITATION', 'categorie' => 'cavitation', 'zones' => null, 'prix' => 2500, 'nombre_seances' => 15, 'duree_seance' => 60],
+            ['nom' => 'PACK 1H CRYO+ 10 S AMIN', 'categorie' => 'cryo', 'zones' => null, 'prix' => 3000, 'nombre_seances' => 10, 'duree_seance' => 60],
+            ['nom' => 'PACK 2CRYO +10 S AMIN', 'categorie' => 'cryo', 'zones' => null, 'prix' => 3500, 'nombre_seances' => 10, 'duree_seance' => 60],
+            
+            // PRESSO
+            ['nom' => 'PACK PRESSO 10 S', 'categorie' => 'presso', 'zones' => null, 'prix' => 1000, 'nombre_seances' => 10, 'duree_seance' => 45],
+            ['nom' => 'PACK PRESSO 5 S', 'categorie' => 'presso', 'zones' => null, 'prix' => 500, 'nombre_seances' => 5, 'duree_seance' => 45],
+            
+            // RADIO FREQUENCE
+            ['nom' => 'PACK RADIOFRICCONS 10 S', 'categorie' => 'radiofriconce', 'zones' => null, 'prix' => 2300, 'nombre_seances' => 10, 'duree_seance' => 60],
+            
+            // CARBAN PELL
+            ['nom' => 'PACK CARBAN PELL 3S', 'categorie' => 'carban', 'zones' => null, 'prix' => 1800, 'nombre_seances' => 3, 'duree_seance' => 45],
+            ['nom' => 'PACK CARBAN PELL 6S', 'categorie' => 'carban', 'zones' => null, 'prix' => 2990, 'nombre_seances' => 6, 'duree_seance' => 45],
+            
+            // MICRO
+            ['nom' => 'PACK MICRO 3S', 'categorie' => 'micro', 'zones' => null, 'prix' => 1500, 'nombre_seances' => 3, 'duree_seance' => 30],
+            ['nom' => 'PACK MICRO 6 S', 'categorie' => 'micro', 'zones' => null, 'prix' => 2500, 'nombre_seances' => 6, 'duree_seance' => 30],
+            
+            // LASER avec ZONES
+            ['nom' => 'PACK 1 ZONE', 'categorie' => 'laser', 'zones' => 1, 'prix' => 1500, 'nombre_seances' => 10, 'duree_seance' => 30],
+            ['nom' => 'PACK 2 ZONE', 'categorie' => 'laser', 'zones' => 2, 'prix' => 3400, 'nombre_seances' => 10, 'duree_seance' => 45],
+            ['nom' => 'PACK 3 ZONE', 'categorie' => 'laser', 'zones' => 3, 'prix' => 5000, 'nombre_seances' => 10, 'duree_seance' => 60],
+            ['nom' => 'PACK 4 ZONE', 'categorie' => 'laser', 'zones' => 4, 'prix' => 7000, 'nombre_seances' => 10, 'duree_seance' => 75],
+            ['nom' => 'PACK 6 ZONE', 'categorie' => 'laser', 'zones' => 6, 'prix' => 9000, 'nombre_seances' => 10, 'duree_seance' => 90],
+            ['nom' => 'PACK 8 ZONE', 'categorie' => 'laser', 'zones' => 8, 'prix' => 10000, 'nombre_seances' => 10, 'duree_seance' => 105],
+            ['nom' => 'PACK 9 ZONE', 'categorie' => 'laser', 'zones' => 9, 'prix' => 11000, 'nombre_seances' => 10, 'duree_seance' => 120],
+            ['nom' => 'PACK 10 ZONE', 'categorie' => 'laser', 'zones' => 10, 'prix' => 12000, 'nombre_seances' => 10, 'duree_seance' => 135],
+            ['nom' => 'PACK 12 ZONE', 'categorie' => 'laser', 'zones' => 12, 'prix' => 15000, 'nombre_seances' => 10, 'duree_seance' => 150],
+            
+            // LUMIERE PULSEE avec ZONES
+            ['nom' => '1 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 1, 'prix' => 200, 'nombre_seances' => 1, 'duree_seance' => 30],
+            ['nom' => 'PACK 1 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 1, 'prix' => 1200, 'nombre_seances' => 10, 'duree_seance' => 30],
+            ['nom' => 'PACK 2 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 2, 'prix' => 2400, 'nombre_seances' => 10, 'duree_seance' => 45],
+            ['nom' => 'PACK 3 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 3, 'prix' => 3600, 'nombre_seances' => 10, 'duree_seance' => 60],
+            ['nom' => 'PACK 4 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 4, 'prix' => 4800, 'nombre_seances' => 10, 'duree_seance' => 75],
+            ['nom' => 'PACK 6 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 6, 'prix' => 5500, 'nombre_seances' => 10, 'duree_seance' => 90],
+            ['nom' => 'PACK 9 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 9, 'prix' => 7500, 'nombre_seances' => 10, 'duree_seance' => 120],
+            ['nom' => 'PACK 10 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 10, 'prix' => 8000, 'nombre_seances' => 10, 'duree_seance' => 135],
+            ['nom' => 'PACK 12 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 12, 'prix' => 10000, 'nombre_seances' => 10, 'duree_seance' => 150],
+            ['nom' => 'PACK 8 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 8, 'prix' => 6500, 'nombre_seances' => 10, 'duree_seance' => 105],
+            ['nom' => '6 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 6, 'prix' => 1000, 'nombre_seances' => 1, 'duree_seance' => 90],
+            ['nom' => '12 ZONE', 'categorie' => 'lumiere_pulsee', 'zones' => 12, 'prix' => 1800, 'nombre_seances' => 1, 'duree_seance' => 150],
+            
+            // AUTRES
+            ['nom' => 'COUVERTURE CHAUFFANTE', 'categorie' => 'autres', 'zones' => null, 'prix' => 1500, 'nombre_seances' => 1, 'duree_seance' => 45],
         ];
 
-        foreach ($packs as $packData) {
-            $pack = Pack::create($packData);
-            
-            if ($pack->nom === 'Pack Minceur 10 séances') {
-                $pack->prestations()->attach(7, ['nombre_seances' => 10]);
-            } else {
-                $pack->prestations()->attach(2, ['nombre_seances' => 6]);
-            }
+        foreach ($packs as $pack) {
+            Pack::create(array_merge($pack, ['actif' => true]));
         }
     }
 }

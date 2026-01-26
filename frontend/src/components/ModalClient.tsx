@@ -68,7 +68,6 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
         });
       }
       
-      // Fermer le modal immédiatement
       onSuccess(savedClient);
       
     } catch (err: any) {
@@ -80,24 +79,24 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
         confirmButtonText: 'OK',
         buttonsStyling: false,
         customClass: {
-          confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm'
+          confirmButton: 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm'
         }
       });
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-gray-900">
+        <div className="sticky top-0 bg-[#0C4DA0] px-5 py-3.5 flex items-center justify-between rounded-t-xl">
+          <h2 className="text-base font-bold text-white">
             {client ? 'Modifier le client' : 'Nouveau client'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
           >
-            <XMarkIcon className="h-5 w-5 text-gray-600" />
+            <XMarkIcon className="h-5 w-5 text-white" />
           </button>
         </div>
 
@@ -111,7 +110,7 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
                 type="text"
                 value={formData.nom}
                 onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
                 required
               />
             </div>
@@ -124,26 +123,26 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
                 type="text"
                 value={formData.prenom}
                 onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
                 required
               />
             </div>
 
             <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 Téléphone <span className="text-red-500">*</span>
-            </label>
-            <input
+              </label>
+              <input
                 type="tel"
                 value={formData.telephone}
                 onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9+\-\s()]/g, '');
-                setFormData({ ...formData, telephone: value });
+                  const value = e.target.value.replace(/[^0-9+\-\s()]/g, '');
+                  setFormData({ ...formData, telephone: value });
                 }}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
                 placeholder="+212"
                 required
-            />
+              />
             </div>
 
             <div>
@@ -154,7 +153,7 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
               />
             </div>
 
@@ -166,19 +165,20 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
                 type="date"
                 value={formData.date_naissance}
                 onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
               />
             </div>
 
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Adresse
+                Adresse & Ville
               </label>
               <input
                 type="text"
                 value={formData.adresse}
                 onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all"
+                placeholder="Ex: Rue 123, Quartier, Casablanca"
               />
             </div>
 
@@ -190,7 +190,7 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all resize-none"
                 placeholder="Informations complémentaires..."
               />
             </div>
@@ -200,14 +200,14 @@ export default function ModalClient({ client, onClose, onSuccess }: ModalProps) 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-xs"
+              className="flex-1 px-3 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-xs transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-3 py-2 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-medium text-xs disabled:opacity-50"
+              className="flex-1 px-3 py-2 bg-[#0C4DA0] text-white rounded-lg hover:bg-blue-700 font-medium text-xs disabled:opacity-50 transition-colors"
             >
               {loading ? 'Enregistrement...' : client ? 'Modifier' : 'Créer'}
             </button>

@@ -11,13 +11,11 @@ return new class extends Migration
         Schema::create('rendez_vous', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('prestation_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('pack_id')->nullable()->constrained()->onDelete('set null');
-            $table->integer('seance_numero')->nullable()->comment('Numéro de la séance si pack');
+            $table->foreignId('client_pack_id')->constrained()->onDelete('cascade');
+            $table->integer('numero_seance');
             $table->dateTime('date_heure');
-            $table->integer('duree')->comment('Durée en minutes');
-            $table->enum('statut', ['Planifié', 'Confirmé', 'Terminé', 'Annulé', 'NoShow'])->default('Planifié');
-            $table->foreignId('assistante_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->integer('duree')->default(60)->comment('Durée en minutes');
+            $table->enum('statut', ['planifie', 'confirme', 'termine', 'annule', 'absent'])->default('planifie');
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

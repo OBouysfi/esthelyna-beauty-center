@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\RendezVous;
 use App\Models\Paiement;
-use App\Models\ClientPack;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class StatistiqueController extends Controller
 {
@@ -20,19 +18,90 @@ class StatistiqueController extends Controller
 
         [$start, $end] = $this->getDateRange($periode, $dateDebut, $dateFin);
 
+        // Période précédente pour comparaison
+        $duree = $start->diffInDays($end);
+        $startPrecedent = $start->copy()->subDays($duree);
+        $endPrecedent = $end->copy()->subDays($duree);
+
+        // Revenus
+        $revenusTotal = Paiement::whereBetween('date_paiement', [$start, $end])->sum('montant');
+        $revenusPrecedent = Paiement::whereBetween('date_paiement', [$startPrecedent, $endPrecedent])->sum('montant');
+        $evolutionRevenus = $revenusPrecedent > 0 ? round((($revenusTotal - $revenusPrecedent) / $revenusPrecedent) * 100, 1) : 0;
+
+        // Clients
+        $totalClients = Client::count();
+        $nouveauxClients = Client::whereBetween('created_at', [$start, $end])->count();
+        $nouveauxPrecedent = Client::whereBetween('created_at', [$startPrecedent, $endPrecedent])->count();
+        $evolutionClients = $nouveauxPrecedent > 0 ? round((($nouveauxClients - $nouveauxPrecedent) / $nouveauxPrecedent) * 100, 1) : 0;
+        
+        $clientsActifs = Client::whereHas('rendezVous', function($q) use ($start, $end) {
+            $q->whereBetween('date_heure', [$start, $end]);
+        })->count();
+
+        // Rendez-vous
+        $totalRdv = RendezVous::whereBetween('date_heure', [$start, $end])->count();
+        $rdvTermines = RendezVous::whereBetween('date_heure', [$start, $end])
+            ->where('statut', 'termine')->count();
+        $rdvAnnules = RendezVous::whereBetween('date_heure', [$start, $end])
+            ->where('statut', 'annule')->count();
+        $tauxAnnulation = $totalRdv > 0 ? round(($rdvAnnules / $totalRdv) * 100, 1) : 0;
+
+        // Taux de conversion
+        $rdvPayes = Paiement::whereBetween('date_paiement', [$start, $end])->count();
+        $tauxConversion = $totalRdv > 0 ? round(($rdvPayes / $totalRdv) * 100, 1) : 0;
+
+        // Graphique revenus
+        $graphiqueRevenus = $this->getGraphiqueRevenus($start, $end, $periode);
+
+        // Top 5 packs par revenu
+        $topPrestations = Paiement::with('rendez_vous.pack')
+            ->whereBetween('date_paiement', [$start, $end])
+            ->get()
+            ->groupBy(function($p) {
+                return $p->rendez_vous?->pack?->nom ?? 'Autre';
+            })
+            ->map(function($group, $nom) {
+                return [
+                    'nom' => $nom,
+                    'revenu' => $group->sum('montant')
+                ];
+            })
+            ->sortByDesc('revenu')
+            ->take(5)
+            ->values();
+
         return response()->json([
-            'revenus' => $this->getRevenus($start, $end),
-            'clients' => $this->getStatsClients($start, $end),
-            'rendez_vous' => $this->getStatsRendezVous($start, $end),
-            'top_prestations' => $this->getTopPrestations($start, $end),
-            'top_packs' => $this->getTopPacks($start, $end),
-            'graphique_revenus' => $this->getGraphiqueRevenus($start, $end, $periode),
-            'taux_conversion' => $this->getTauxConversion($start, $end),
             'periode' => [
-                'debut' => $start->format('Y-m-d'),
-                'fin' => $end->format('Y-m-d'),
-                'label' => $this->getPeriodeLabel($periode, $start, $end)
-            ]
+                'type' => $periode,
+                'label' => $this->getPeriodeLabel($periode, $start, $end),
+                'debut' => $start->toDateString(),
+                'fin' => $end->toDateString()
+            ],
+            'revenus' => [
+                'total' => round($revenusTotal, 2),
+                'evolution' => $evolutionRevenus,
+                'en_hausse' => $evolutionRevenus >= 0
+            ],
+            'clients' => [
+                'total' => $totalClients,
+                'nouveaux' => $nouveauxClients,
+                'actifs' => $clientsActifs,
+                'evolution' => $evolutionClients,
+                'en_hausse' => $evolutionClients >= 0
+            ],
+            'rendez_vous' => [
+                'total' => $totalRdv,
+                'termines' => $rdvTermines,
+                'annules' => $rdvAnnules,
+                'taux_annulation' => $tauxAnnulation
+            ],
+            'taux_conversion' => [
+                'taux' => $tauxConversion,
+                'rdv_payes' => $rdvPayes,
+                'total_rdv' => $totalRdv
+            ],
+            'graphique_revenus' => $graphiqueRevenus,
+            'top_prestations' => $topPrestations
         ]);
     }
 
@@ -71,153 +140,39 @@ class StatistiqueController extends Controller
         }
     }
 
-    private function getRevenus($start, $end)
-    {
-        $total = Paiement::whereBetween('date_paiement', [$start, $end])->sum('montant_paye');
-        $objectif = 50000;
-        $pourcentage = $objectif > 0 ? ($total / $objectif) * 100 : 0;
-
-        $periodePrecedente = $start->copy()->subDays($end->diffInDays($start));
-        $totalPrecedent = Paiement::whereBetween('date_paiement', [$periodePrecedente, $start->copy()->subDay()])->sum('montant_paye');
-        $evolution = $totalPrecedent > 0 ? (($total - $totalPrecedent) / $totalPrecedent) * 100 : 0;
-
-        return [
-            'total' => round($total, 2),
-            'objectif' => $objectif,
-            'pourcentage_objectif' => round($pourcentage, 1),
-            'evolution' => round($evolution, 1),
-            'en_hausse' => $evolution >= 0
-        ];
-    }
-
-    private function getStatsClients($start, $end)
-    {
-        $total = Client::count();
-        $nouveaux = Client::whereBetween('created_at', [$start, $end])->count();
-        $actifs = Client::whereHas('rendezvous', function($q) use ($start, $end) {
-            $q->whereBetween('date_heure', [$start, $end]);
-        })->count();
-
-        $periodePrecedente = $start->copy()->subDays($end->diffInDays($start));
-        $nouveauxPrecedent = Client::whereBetween('created_at', [$periodePrecedente, $start->copy()->subDay()])->count();
-        $evolution = $nouveauxPrecedent > 0 ? (($nouveaux - $nouveauxPrecedent) / $nouveauxPrecedent) * 100 : 0;
-
-        return [
-            'total' => $total,
-            'nouveaux' => $nouveaux,
-            'actifs' => $actifs,
-            'evolution' => round($evolution, 1),
-            'en_hausse' => $evolution >= 0
-        ];
-    }
-
-    private function getStatsRendezVous($start, $end)
-    {
-        $total = RendezVous::whereBetween('date_heure', [$start, $end])->count();
-        $confirmes = RendezVous::whereBetween('date_heure', [$start, $end])->where('statut', 'Confirmé')->count();
-        $termines = RendezVous::whereBetween('date_heure', [$start, $end])->where('statut', 'Terminé')->count();
-        $annules = RendezVous::whereBetween('date_heure', [$start, $end])->where('statut', 'Annulé')->count();
-        $tauxAnnulation = $total > 0 ? ($annules / $total) * 100 : 0;
-
-        return [
-            'total' => $total,
-            'confirmes' => $confirmes,
-            'termines' => $termines,
-            'annules' => $annules,
-            'taux_annulation' => round($tauxAnnulation, 1)
-        ];
-    }
-
-    private function getTopPrestations($start, $end, $limit = 5)
-    {
-        $results = Paiement::whereBetween('date_paiement', [$start, $end])
-            ->whereNotNull('prestation_id')
-            ->select('prestation_id', DB::raw('COUNT(*) as nombre'), DB::raw('SUM(montant_paye) as revenu'))
-            ->with('prestation')
-            ->groupBy('prestation_id')
-            ->orderBy('revenu', 'desc')
-            ->limit($limit)
-            ->get();
-
-        return $results->map(function($item) {
-            return [
-                'id' => $item->prestation_id,
-                'nom' => $item->prestation->nom ?? 'N/A',
-                'nombre' => $item->nombre,
-                'revenu' => round($item->revenu, 2)
-            ];
-        });
-    }
-
-    private function getTopPacks($start, $end, $limit = 5)
-    {
-        $results = ClientPack::whereBetween('date_achat', [$start, $end])
-            ->select('pack_id', DB::raw('COUNT(*) as nombre'), DB::raw('SUM(montant_paye) as revenu'))
-            ->with('pack')
-            ->groupBy('pack_id')
-            ->orderBy('revenu', 'desc')
-            ->limit($limit)
-            ->get();
-
-        return $results->map(function($item) {
-            return [
-                'id' => $item->pack_id,
-                'nom' => $item->pack->nom ?? 'N/A',
-                'nombre' => $item->nombre,
-                'revenu' => round($item->revenu, 2)
-            ];
-        });
-    }
-
     private function getGraphiqueRevenus($start, $end, $periode)
     {
-        $groupBy = $this->getGroupByFormat($periode);
-        
-        $revenus = Paiement::whereBetween('date_paiement', [$start, $end])
-            ->select(DB::raw($groupBy . ' as periode'), DB::raw('SUM(montant_paye) as montant'))
-            ->groupBy('periode')
-            ->orderBy('periode')
-            ->get();
+        $labels = [];
+        $data = [];
 
-        return [
-            'labels' => $revenus->pluck('periode')->toArray(),
-            'data' => $revenus->pluck('montant')->map(fn($m) => round($m, 2))->toArray()
-        ];
-    }
-
-    private function getGroupByFormat($periode)
-    {
-        switch ($periode) {
-            case 'semaine':
-            case 'mois':
-                return "DATE_FORMAT(date_paiement, '%Y-%m-%d')";
-            case 'trimestre':
-            case 'annee':
-                return "DATE_FORMAT(date_paiement, '%Y-%m')";
-            default:
-                return "DATE_FORMAT(date_paiement, '%Y-%m-%d')";
+        if ($periode === 'semaine') {
+            // Par jour
+            for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+                $labels[] = $date->isoFormat('ddd');
+                $data[] = Paiement::whereDate('date_paiement', $date)->sum('montant');
+            }
+        } elseif ($periode === 'mois') {
+            // Par semaine
+            for ($i = 0; $i < 4; $i++) {
+                $weekStart = $start->copy()->addWeeks($i);
+                $weekEnd = $weekStart->copy()->addWeek();
+                $labels[] = 'Sem ' . ($i + 1);
+                $data[] = Paiement::whereBetween('date_paiement', [$weekStart, $weekEnd])->sum('montant');
+            }
+        } else {
+            // Par mois
+            $currentMonth = $start->copy()->startOfMonth();
+            while ($currentMonth <= $end) {
+                $labels[] = $currentMonth->isoFormat('MMM');
+                $monthEnd = $currentMonth->copy()->endOfMonth();
+                $data[] = Paiement::whereBetween('date_paiement', [$currentMonth, $monthEnd])->sum('montant');
+                $currentMonth->addMonth();
+            }
         }
-    }
-
-    private function getTauxConversion($start, $end)
-    {
-        $totalRdv = RendezVous::whereBetween('date_heure', [$start, $end])->count();
-        
-        // Compte les RDV qui ont un paiement associé via client_id et date
-        $clientsAvecPaiement = Paiement::whereBetween('date_paiement', [$start, $end])
-            ->distinct('client_id')
-            ->pluck('client_id');
-        
-        $rdvPayes = RendezVous::whereBetween('date_heure', [$start, $end])
-            ->whereIn('client_id', $clientsAvecPaiement)
-            ->count();
-
-        $taux = $totalRdv > 0 ? ($rdvPayes / $totalRdv) * 100 : 0;
 
         return [
-            'total_rdv' => $totalRdv,
-            'rdv_payes' => $rdvPayes,
-            'taux' => round($taux, 1)
+            'labels' => $labels,
+            'data' => array_map(fn($m) => round($m, 2), $data)
         ];
     }
 
@@ -226,20 +181,27 @@ class StatistiqueController extends Controller
         $periode = $request->get('periode', 'mois');
         $dateDebut = $request->get('date_debut');
         $dateFin = $request->get('date_fin');
+        
         [$start, $end] = $this->getDateRange($periode, $dateDebut, $dateFin);
 
-        $requestClone = new Request(['periode' => $periode, 'date_debut' => $dateDebut, 'date_fin' => $dateFin]);
-        $data = json_decode($this->dashboard($requestClone)->getContent());
+        $paiements = Paiement::with(['client', 'rendez_vous.pack'])
+            ->whereBetween('date_paiement', [$start, $end])
+            ->orderBy('date_paiement', 'desc')
+            ->get();
 
-        $csv = "Statistiques Esthelyna Beauty Center\n\n";
-        $csv .= "Période: " . $data->periode->label . "\n";
-        $csv .= "Du: " . $data->periode->debut . " Au: " . $data->periode->fin . "\n\n";
-        $csv .= "REVENUS\nTotal: " . $data->revenus->total . " DH\n";
-        $csv .= "Objectif: " . $data->revenus->objectif . " DH\n";
-        $csv .= "Évolution: " . $data->revenus->evolution . "%\n\n";
-        $csv .= "CLIENTS\nTotal: " . $data->clients->total . "\n";
-        $csv .= "Nouveaux: " . $data->clients->nouveaux . "\n";
-        $csv .= "Actifs: " . $data->clients->actifs . "\n\n";
+        $csv = "Date,Client,Pack,Montant,Méthode\n";
+        
+        foreach ($paiements as $p) {
+            $csv .= sprintf(
+                "%s,%s %s,%s,%s,%s\n",
+                $p->date_paiement->format('d/m/Y'),
+                $p->client->prenom,
+                $p->client->nom,
+                $p->rendez_vous?->pack?->nom ?? '-',
+                $p->montant,
+                $p->methode
+            );
+        }
 
         return response($csv, 200)
             ->header('Content-Type', 'text/csv')

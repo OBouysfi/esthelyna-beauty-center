@@ -11,6 +11,13 @@ use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\StatistiqueController;
 
+
+Route::get('/', function () {
+    return response()->json([
+        'message' => 'Epiloria Beauty System API',
+        'frontend' => 'https://system.epiloriabeauty.ma/login'
+    ]);
+});
 // Auth routes (public)
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -45,6 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/clients/{client}', [ClientController::class, 'show']);
     Route::put('/clients/{client}', [ClientController::class, 'update']);
     Route::delete('/clients/{client}', [ClientController::class, 'destroy']);
+    Route::get('/clients/{id}/suivi', [ClientController::class, 'suivi']);
+    Route::get('/clients/{id}/rendez-vous', [ClientController::class, 'rendezVous']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

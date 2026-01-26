@@ -14,20 +14,20 @@ class RendezVous extends Model
 
     protected $fillable = [
         'client_id',
-        'prestation_id',
+        'client_pack_id',
+        'prestation_id',       // ✅ Remis
         'pack_id',
-        'seance_numero',
+        'numero_seance',
         'date_heure',
         'duree',
         'statut',
-        'assistante_id',
         'notes',
     ];
 
     protected $casts = [
         'date_heure' => 'datetime',
         'duree' => 'integer',
-        'seance_numero' => 'integer',
+        'numero_seance' => 'integer',
     ];
 
     public function client()
@@ -45,12 +45,11 @@ class RendezVous extends Model
         return $this->belongsTo(Pack::class);
     }
 
-    public function assistante()
+    public function client_pack()
     {
-        return $this->belongsTo(User::class, 'assistante_id');
+        return $this->belongsTo(ClientPack::class);
     }
 
-    // AJOUTE CETTE RELATION!
     public function paiement()
     {
         return $this->hasOne(Paiement::class, 'rendez_vous_id');

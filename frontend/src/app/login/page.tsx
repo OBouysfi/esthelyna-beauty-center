@@ -49,7 +49,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex justify-center mb-8">
-            <img src="/logo.png" alt="Esthelyna" className="h-20 w-auto" />
+            <img src="/logo.png" alt="Esthelyna" className="h-24 w-auto" />
           </div>
 
           {error && (

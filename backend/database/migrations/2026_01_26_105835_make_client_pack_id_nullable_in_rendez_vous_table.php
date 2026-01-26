@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('packs', function (Blueprint $table) {
-            $table->integer('validite_jours')->default(90)->after('nombre_seances_total');
+        Schema::table('rendez_vous', function (Blueprint $table) {
+            $table->integer('numero_seance')->nullable()->change();
         });
     }
 
     public function down(): void
     {
-        Schema::table('packs', function (Blueprint $table) {
-            $table->dropColumn('validite_jours');
+        Schema::table('rendez_vous', function (Blueprint $table) {
+            $table->integer('numero_seance')->nullable(false)->change();
         });
     }
 };

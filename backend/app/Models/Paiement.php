@@ -10,23 +10,20 @@ class Paiement extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'paiements';
+
     protected $fillable = [
         'client_id',
-        'prestation_id',
-        'pack_id',
-        'montant_total',
-        'montant_paye',
-        'reste',
+        'client_pack_id',
+        'rendez_vous_id',
+        'montant',
         'date_paiement',
-        'methode_paiement',
-        'statut',
+        'methode',
         'notes',
     ];
 
     protected $casts = [
-        'montant_total' => 'decimal:2',
-        'montant_paye' => 'decimal:2',
-        'reste' => 'decimal:2',
+        'montant' => 'decimal:2',
         'date_paiement' => 'date',
     ];
 
@@ -35,13 +32,13 @@ class Paiement extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function prestation()
+    public function client_pack()
     {
-        return $this->belongsTo(Prestation::class);
+        return $this->belongsTo(ClientPack::class);
     }
 
-    public function pack()
+    public function rendez_vous()
     {
-        return $this->belongsTo(Pack::class);
+        return $this->belongsTo(RendezVous::class);
     }
 }

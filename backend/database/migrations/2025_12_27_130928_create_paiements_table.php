@@ -1,32 +1,42 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Paiement extends Model
 {
-    public function up(): void
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'client_id',
+        'client_pack_id',
+        'rendez_vous_id',
+        'montant',
+        'date_paiement',
+        'methode',
+        'notes',
+    ];
+
+    protected $casts = [
+        'montant' => 'decimal:2',
+        'date_paiement' => 'date',
+    ];
+
+    public function client()
     {
-        Schema::create('paiements', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('prestation_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('pack_id')->nullable()->constrained()->onDelete('set null');
-            $table->decimal('montant_total', 10, 2);
-            $table->decimal('montant_paye', 10, 2);
-            $table->decimal('reste', 10, 2);
-            $table->date('date_paiement');
-            $table->enum('methode_paiement', ['Espèces', 'Carte', 'Virement', 'Chèque'])->default('Espèces');
-            $table->enum('statut', ['Payé', 'Partiel', 'Impayé'])->default('Payé');
-            $table->text('notes')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        return $this->belongsTo(Client::class);
     }
 
-    public function down(): void
+    public function client_pack()
     {
-        Schema::dropIfExists('paiements');
+        return $this->belongsTo(ClientPack::class);
     }
-};
+
+    public function rendez_vous()
+    {
+        return $this->belongsTo(RendezVous::class);
+    }
+}

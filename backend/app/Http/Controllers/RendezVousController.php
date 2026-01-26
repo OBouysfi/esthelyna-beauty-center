@@ -13,7 +13,7 @@ class RendezVousController extends Controller
 {
     public function index(Request $request)
     {
-        $query = RendezVous::with(['client', 'prestation', 'pack', 'assistante'])
+        $query = RendezVous::with(['client', 'prestation', 'pack'])
             ->orderBy('date_heure', 'desc');
 
         // Filtres
@@ -76,22 +76,26 @@ class RendezVousController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
-            'prestation_id' => 'nullable|exists:prestations,id',
+            'client_pack_id' => 'nullable|exists:client_packs,id',
             'pack_id' => 'nullable|exists:packs,id',
-            'seance_numero' => 'nullable|integer',
             'date_heure' => 'required|date',
             'duree' => 'required|integer',
             'notes' => 'nullable|string',
         ]);
 
-        $validated['statut'] = 'Planifié';
-        $validated['assistante_id'] = auth()->id();
+        // Calculer automatiquement le numéro de séance
+        $numeroSeance = RendezVous::where('client_id', $validated['client_id'])
+            ->where('client_pack_id', $validated['client_pack_id'] ?? null)
+            ->count() + 1;
+
+        $validated['numero_seance'] = $numeroSeance; // ✅ Correction
+        $validated['statut'] = 'planifie'; // ✅ Minuscule
 
         $rendezVous = RendezVous::create($validated);
 
         return response()->json([
             'message' => 'Rendez-vous créé avec succès',
-            'rendez_vous' => $rendezVous->load(['client', 'prestation', 'pack'])
+            'rendez_vous' => $rendezVous->load(['client', 'pack', 'client_pack'])
         ], 201);
     }
 
@@ -99,11 +103,11 @@ class RendezVousController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'sometimes|exists:clients,id',
-            'prestation_id' => 'nullable|exists:prestations,id',
             'pack_id' => 'nullable|exists:packs,id',
+            'client_pack_id' => 'nullable|exists:client_packs,id',
             'date_heure' => 'sometimes|date',
             'duree' => 'sometimes|integer',
-            'statut' => 'sometimes|in:Planifié,Confirmé,Terminé,Annulé,NoShow',
+            'statut' => 'sometimes|in:planifie,confirme,termine,annule,absent',
             'notes' => 'nullable|string',
         ]);
 
@@ -111,14 +115,14 @@ class RendezVousController extends Controller
 
         return response()->json([
             'message' => 'Rendez-vous mis à jour',
-            'rendez_vous' => $rendezVous->load(['client', 'prestation', 'pack'])
+            'rendez_vous' => $rendezVous->load(['client', 'pack', 'client_pack'])
         ]);
     }
 
     public function updateStatus(Request $request, RendezVous $rendezVous)
     {
         $validated = $request->validate([
-            'statut' => 'required|in:Planifié,Confirmé,Terminé,Annulé,NoShow',
+            'statut' => 'required|in:planifie,confirme,termine,annule,absent', // ✅ Minuscules
         ]);
 
         $rendezVous->update(['statut' => $validated['statut']]);

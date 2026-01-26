@@ -11,12 +11,15 @@ import { fr } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { 
   PlusIcon,
-  ClockIcon
+  ClockIcon,
+  CalendarDaysIcon,
+  TableCellsIcon,
+  UserCircleIcon,
+  PhoneIcon,
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 
-const locales = {
-  'fr': fr,
-};
+const locales = { 'fr': fr };
 
 const localizer = dateFnsLocalizer({
   format,
@@ -39,8 +42,22 @@ const messages = {
   time: 'Heure',
   event: 'Événement',
   noEventsInRange: 'Aucun rendez-vous',
-  showMore: (total: number) => `+ ${total} rendez-vous`,
+  showMore: (total: number) => `+${total} voir plus`,
 };
+
+// Palette de couleurs pour différencier les RDV
+const colorPalette = [
+  { bg: '#8B5CF6', shadow: 'rgba(139, 92, 246, 0.3)' },  // violet
+  { bg: '#EC4899', shadow: 'rgba(236, 72, 153, 0.3)' },  // rose
+  { bg: '#10B981', shadow: 'rgba(16, 185, 129, 0.3)' },  // vert
+  { bg: '#F59E0B', shadow: 'rgba(245, 158, 11, 0.3)' },  // orange
+  { bg: '#3B82F6', shadow: 'rgba(59, 130, 246, 0.3)' },  // bleu
+  { bg: '#EF4444', shadow: 'rgba(239, 68, 68, 0.3)' },   // rouge
+  { bg: '#6366F1', shadow: 'rgba(99, 102, 241, 0.3)' },  // indigo
+  { bg: '#14B8A6', shadow: 'rgba(20, 184, 166, 0.3)' },  // teal
+  { bg: '#F97316', shadow: 'rgba(249, 115, 22, 0.3)' },  // orange foncé
+  { bg: '#06B6D4', shadow: 'rgba(6, 182, 212, 0.3)' },   // cyan
+];
 
 export default function CalendrierPage() {
   const router = useRouter();
@@ -49,8 +66,9 @@ export default function CalendrierPage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [view, setView] = useState<View>('month');
+  const [view, setView] = useState<View>('week'); // Vue semaine par défaut
   const [date, setDate] = useState(new Date());
+  const [displayMode, setDisplayMode] = useState<'calendar' | 'table'>('calendar');
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -67,27 +85,15 @@ export default function CalendrierPage() {
       const { data } = await api.get('/rendez-vous');
       const rdvData = data.data || data;
       
-      console.log('RDV reçus:', rdvData); // DEBUG
-      
-      const formattedEvents = rdvData.map((rdv: any) => {
-        // Parser la date correctement
+      const formattedEvents = rdvData.map((rdv: any, index: number) => {
         let start;
         if (rdv.date_heure.includes('T')) {
-          // Format ISO
           start = new Date(rdv.date_heure);
         } else {
-          // Format SQL "2025-12-28 14:30:00"
           start = new Date(rdv.date_heure.replace(' ', 'T'));
         }
         
         const end = new Date(start.getTime() + (rdv.duree || 60) * 60000);
-        
-        console.log('Event créé:', {
-          title: `${rdv.client?.prenom} ${rdv.client?.nom}`,
-          start,
-          end,
-          statut: rdv.statut
-        }); // DEBUG
         
         return {
           id: rdv.id,
@@ -95,13 +101,13 @@ export default function CalendrierPage() {
           start,
           end,
           resource: rdv,
+          colorIndex: index % colorPalette.length,
         };
       });
       
-      console.log('Events formatés:', formattedEvents); // DEBUG
       setEvents(formattedEvents);
     } catch (error) {
-      console.error('Erreur chargement:', error);
+      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -119,107 +125,131 @@ export default function CalendrierPage() {
   }, []);
 
   const eventStyleGetter = (event: any) => {
-    const rdv = event.resource;
-    let backgroundColor = '#d97706'; // Couleur par défaut
-    
-    switch (rdv?.statut) {
-      case 'Planifié':
-      case 'En attente':
-        backgroundColor = 'rgb(10, 49, 135)'; // Bleu foncé
-        break;
-      case 'Confirmé':
-        backgroundColor = 'rgb(13, 69, 18)'; // Vert foncé
-        break;
-      case 'Terminé':
-        backgroundColor = 'rgb(0, 0, 0)'; // Noir
-        break;
-      case 'Annulé':
-        backgroundColor = 'rgb(188, 0, 0)'; // Rouge foncé
-        break;
-      default:
-        backgroundColor = 'rgb(10, 49, 135)'; // Bleu par défaut
-    }
+    const color = colorPalette[event.colorIndex];
 
     return {
       style: {
-        backgroundColor,
+        backgroundColor: color.bg,
         borderRadius: '4px',
-        opacity: 0.9,
+        opacity: 1,
         color: 'white',
-        border: '0px',
-        display: 'block',
+        border: 'none',
         fontSize: '12px',
-        padding: '2px 4px',
+        padding: '3px 6px',
+        boxShadow: 'none',
+        fontWeight: '500',
       },
     };
   };
 
   const CustomEvent = ({ event }: any) => {
     return (
-      <div className="text-xs">
-        <div className="font-medium truncate">{event.title}</div>
-        <div className="flex items-center gap-1 text-white/90">
-          <ClockIcon className="h-3 w-3" />
-          {format(event.start, 'HH:mm')}
+      <div className="truncate">
+        <span className="font-medium text-[11px]">
+          {format(event.start, 'HH:mm')} {event.title}
+        </span>
+      </div>
+    );
+  };
+
+  // En-tête personnalisé pour afficher "26 Lundi"
+  const CustomWeekHeader = ({ date }: any) => {
+    return (
+      <div className="text-center py-2">
+        <div className="text-xs font-medium text-gray-500 uppercase mb-1">
+          {format(date, 'EEE', { locale: fr })}
+        </div>
+        <div className="text-2xl font-bold text-gray-900">
+          {format(date, 'd')}
         </div>
       </div>
     );
   };
 
+  const getStatutLabel = (statut: string) => {
+    const labels: any = {
+      'planifie': 'Planifié',
+      'confirme': 'Confirmé',
+      'termine': 'Terminé',
+      'annule': 'Annulé'
+    };
+    return labels[statut] || statut;
+  };
+
+  const getStatutBadge = (statut: string) => {
+    const styles: any = {
+      'planifie': 'bg-blue-100 text-blue-700',
+      'confirme': 'bg-green-100 text-green-700',
+      'termine': 'bg-gray-100 text-gray-700',
+      'annule': 'bg-red-100 text-red-700',
+    };
+    return styles[statut] || styles['planifie'];
+  };
+
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Calendrier</h1>
-          <p className="text-xs text-gray-600 mt-0.5">
-            Vue d'ensemble de vos rendez-vous ({events.length} RDV)
+          <h1 className="text-2xl font-bold text-gray-900">
+            Calendrier
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {events.length} rendez-vous planifiés
           </p>
         </div>
         
-        <button
-          onClick={() => {
-            setSelectedEvent(null);
-            setSelectedDate(null);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xs font-medium"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Nouveau RDV
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Toggle View */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setDisplayMode('calendar')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                displayMode === 'calendar'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDaysIcon className="h-4 w-4" />
+              Calendrier
+            </button>
+            <button
+              onClick={() => setDisplayMode('table')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                displayMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <TableCellsIcon className="h-4 w-4" />
+              Liste
+            </button>
+          </div>
+
+          <button
+            onClick={() => {
+              setSelectedEvent(null);
+              setSelectedDate(null);
+              setShowModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#0C4DA0] text-white rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200 text-sm font-semibold"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Nouveau RDV
+          </button>
+        </div>
       </div>
 
-      {/* Légende */}
-    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-      <p className="text-xs font-semibold text-gray-700 mb-2">Légende:</p>
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(10, 49, 135)' }}></div>
-          <span className="text-xs text-gray-600">Planifié</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(13, 69, 18)' }}></div>
-          <span className="text-xs text-gray-600">Confirmé</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(0, 0, 0)' }}></div>
-          <span className="text-xs text-gray-600">Terminé</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(188, 0, 0)' }}></div>
-          <span className="text-xs text-gray-600">Annulé</span>
-        </div>
-      </div>
-    </div>
-
-      {/* Calendar */}
+      {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center h-96 bg-white rounded-lg border border-gray-200">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600"></div>
+        <div className="flex items-center justify-center h-96 bg-white rounded-xl border border-gray-200">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0C4DA0] mx-auto mb-4"></div>
+            <p className="text-sm text-gray-500">Chargement...</p>
+          </div>
         </div>
-      ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-4" style={{ height: '700px' }}>
+      ) : displayMode === 'calendar' ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm" style={{ height: '750px' }}>
           <Calendar
             localizer={localizer}
             events={events}
@@ -237,9 +267,108 @@ export default function CalendrierPage() {
             eventPropGetter={eventStyleGetter}
             components={{
               event: CustomEvent,
+              week: {
+                header: CustomWeekHeader,
+              },
+              day: {
+                header: CustomWeekHeader,
+              }
             }}
             style={{ height: '100%' }}
+            popup
+            popupOffset={{ x: 0, y: 10 }}
+            showMultiDayTimes
+            step={30}
+            timeslots={2}
+            views={['month', 'week', 'day', 'agenda']}
           />
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Client</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Pack</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Date & Heure</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Durée</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Contact</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {events
+                  .sort((a: any, b: any) => b.start.getTime() - a.start.getTime())
+                  .map((event: any) => {
+                    const rdv = event.resource;
+                    const color = colorPalette[event.colorIndex];
+                    return (
+                      <tr 
+                        key={event.id}
+                        onClick={() => handleSelectEvent(event)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                              style={{ backgroundColor: color.bg }}
+                            >
+                              {rdv.client?.prenom?.[0]}{rdv.client?.nom?.[0]}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900">
+                                {rdv.client?.prenom} {rdv.client?.nom}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                ID: {rdv.client?.id}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <CreditCardIcon className="h-5 w-5 text-gray-400" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {rdv.pack?.nom || 'Pack non défini'}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Séance {rdv.numero_seance}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            {format(event.start, 'dd MMM yyyy', { locale: fr })}
+                          </div>
+                          <div className="text-xs text-gray-500 flex items-center gap-1">
+                            <ClockIcon className="h-3 w-3" />
+                            {format(event.start, 'HH:mm')}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {rdv.duree || 60} min
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatutBadge(rdv.statut)}`}>
+                            {getStatutLabel(rdv.statut)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <PhoneIcon className="h-4 w-4" />
+                            {rdv.client?.telephone || 'N/A'}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -263,22 +392,21 @@ export default function CalendrierPage() {
 
       <style jsx global>{`
         .rbc-calendar {
-          font-family: 'Poppins', sans-serif;
+          font-family: 'Inter', system-ui, sans-serif;
         }
         
         .rbc-header {
-          padding: 14px 8px;
-          font-weight: 600;
-          font-size: 11px;
-          color: #6b7280;
-          background-color: #ffffff;
-          border-bottom: 1px solid #f3f4f6;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          padding: 0;
+          font-weight: 500;
+          font-size: 13px;
+          color: #374151;
+          background: #ffffff;
+          border-bottom: 2px solid #e5e7eb;
+          padding-bottom: 50px;
         }
         
         .rbc-today {
-          background-color: #fffbeb;
+          background-color: #eff6ff;
         }
         
         .rbc-off-range-bg {
@@ -286,134 +414,165 @@ export default function CalendrierPage() {
         }
         
         .rbc-date-cell {
-          padding: 6px 10px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1f2937;
+          padding: 4px;
+          text-align: right;
         }
         
-        .rbc-button-link {
-          font-size: 13px;
-          color: #1f2937;
-          font-weight: 500;
+        .rbc-date-cell.rbc-now {
+          font-weight: bold;
+        }
+        
+        .rbc-date-cell > a {
+          font-size: 14px;
+          font-weight: 600;
+          color: #111827;
         }
         
         .rbc-toolbar {
           padding: 0;
           margin-bottom: 20px;
-          font-size: 14px;
-          font-family: 'Poppins', sans-serif;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: center;
         }
         
         .rbc-toolbar button {
           padding: 8px 16px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
-          background-color: #ffffff;
+          background: white;
           color: #374151;
           font-size: 13px;
           font-weight: 500;
-          font-family: 'Poppins', sans-serif;
-          transition: all 0.15s ease;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          transition: all 0.2s;
         }
         
         .rbc-toolbar button:hover {
-          background-color: #f9fafb;
-          border-color: #d97706;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          background: #f9fafb;
+          border-color: #0C4DA0;
         }
         
         .rbc-toolbar button.rbc-active {
-          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-          color: #ffffff;
-          border-color: #f59e0b;
-          box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
+          background: #0C4DA0;
+          color: white;
+          border-color: #0C4DA0;
+        }
+        
+        .rbc-toolbar-label {
+          font-weight: 700;
+          font-size: 18px;
+          color: #111827;
+          text-transform: capitalize;
         }
         
         .rbc-event {
-          padding: 4px 8px;
-          border-radius: 6px;
+          border-radius: 4px;
           cursor: pointer;
-          font-family: 'Poppins', sans-serif;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: none;
+          transition: all 0.15s;
+          padding: 2px 4px;
         }
         
         .rbc-event:hover {
-          opacity: 1;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          opacity: 0.85;
           transform: translateY(-1px);
-          transition: all 0.2s ease;
-        }
-        
-        .rbc-show-more {
-          background-color: transparent;
-          color: #f59e0b;
-          font-weight: 600;
-          font-size: 11px;
-          font-family: 'Poppins', sans-serif;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-        
-        .rbc-show-more:hover {
-          background-color: #fef3c7;
         }
         
         .rbc-month-view {
           border: 1px solid #e5e7eb;
           border-radius: 12px;
           overflow: hidden;
-          background: #ffffff;
+          background: white;
         }
         
         .rbc-day-bg {
           border-left: 1px solid #f3f4f6;
-          transition: background-color 0.15s ease;
         }
         
-        .rbc-day-bg:hover {
-          background-color: #fafafa;
+        .rbc-current-time-indicator {
+          background-color: #0C4DA0;
+          height: 2px;
         }
         
         .rbc-time-slot {
-          min-height: 50px;
-          border-top: 1px solid #f9fafb;
+          border-top: 1px solid #f3f4f6;
         }
         
-        .rbc-time-view {
-          border: 1px solid #e5e7eb;
+        .rbc-timeslot-group {
+          border-left: 1px solid #e5e7eb;
+          min-height: 60px;
+        }
+        
+        .rbc-time-content {
+          border-top: 1px solid #e5e7eb;
+        }
+        
+        .rbc-time-header-content {
+          border-left: 1px solid #e5e7eb;
+        }
+        
+        .rbc-time-column {
+          min-width: 50px;
+        }
+        
+        .rbc-time-gutter {
+          font-size: 11px;
+          color: #6b7280;
+        }
+        
+        .rbc-agenda-view {
           border-radius: 12px;
           overflow: hidden;
         }
         
-        .rbc-time-header {
-          border-bottom: 1px solid #e5e7eb;
+        .rbc-agenda-table {
+          border: 1px solid #e5e7eb;
         }
         
-        .rbc-time-content {
-          border-top: 1px solid #f3f4f6;
+        .rbc-agenda-date-cell,
+        .rbc-agenda-time-cell {
+          padding: 12px;
+          font-weight: 600;
+          color: #374151;
         }
         
-        .rbc-current-time-indicator {
-          background-color: #f59e0b;
-          height: 2px;
+        .rbc-agenda-event-cell {
+          padding: 12px;
         }
         
-        .rbc-label {
-          font-family: 'Poppins', sans-serif;
+        .rbc-show-more {
+          background-color: #0C4DA0;
+          color: white;
+          padding: 2px 6px;
+          border-radius: 4px;
           font-size: 11px;
-          font-weight: 500;
-          color: #9ca3af;
+          font-weight: 600;
+          margin: 2px;
+          cursor: pointer;
+          transition: all 0.2s;
         }
         
-        .rbc-month-row {
-          border-top: 1px solid #f3f4f6;
+        .rbc-show-more:hover {
+          background-color: #083a7a;
         }
         
-        .rbc-selected {
-          background-color: #fef3c7 !important;
+        .rbc-overlay {
+          border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          border: 1px solid #e5e7eb;
+          max-width: 300px;
+        }
+        
+        .rbc-overlay-header {
+          border-bottom: 1px solid #e5e7eb;
+          padding: 12px;
+          font-weight: 600;
+          background: #f9fafb;
+          font-size: 14px;
+        }
+        
+        .rbc-event-content {
+          font-size: 12px;
         }
       `}</style>
     </AdminLayout>

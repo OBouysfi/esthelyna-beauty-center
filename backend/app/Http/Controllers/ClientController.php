@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use Illuminate\Http\Request;
-
+use App\Models\RendezVous;
+use App\Models\ClientPack; 
+use App\Models\Paiement;
 class ClientController extends Controller
 {
     public function index(Request $request)
@@ -113,4 +115,59 @@ class ClientController extends Controller
             'actifs' => $actifs,
         ]);
     }
+   
+    public function rendezVous($id)
+{
+    $rdvs = RendezVous::where('client_id', $id)
+        ->with(['pack', 'client_pack'])
+        ->whereIn('statut', ['planifie', 'confirme'])
+        ->orderBy('date_heure', 'asc')
+        ->get();
+
+    return response()->json($rdvs);
+}
+public function suivi($id)
+{
+    $client = Client::findOrFail($id);
+
+    // Packs du client avec toutes les relations
+    $clientPacks = ClientPack::with(['pack', 'seances', 'paiements'])
+        ->where('client_id', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Pack actif
+    $packActif = $clientPacks->where('statut', 'actif')->first();
+
+    // Historique (packs terminés/expirés)
+    $historique = $clientPacks->whereIn('statut', ['termine', 'expire', 'suspendu']);
+
+    // Tous les RDV du client
+    $rendezVous = RendezVous::with(['pack'])
+        ->where('client_id', $id)
+        ->orderBy('date_heure', 'desc')
+        ->get();
+
+    // Tous les paiements du client
+    $paiements = Paiement::with(['client_pack.pack', 'rendez_vous'])
+        ->where('client_id', $id)
+        ->orderBy('date_paiement', 'desc')
+        ->get();
+
+    // Statistiques
+    $totalPaye = $paiements->sum('montant');
+    $totalSeances = $rendezVous->where('statut', 'termine')->count();
+
+    return response()->json([
+        'client' => $client,
+        'packActif' => $packActif,
+        'historique' => $historique,
+        'rendezVous' => $rendezVous,
+        'paiements' => $paiements,
+        'stats' => [
+            'total_paye' => $totalPaye,
+            'total_seances' => $totalSeances,
+        ]
+    ]);
+}
 }

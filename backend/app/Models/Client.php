@@ -38,4 +38,8 @@ class Client extends Model
     {
         return $this->prenom . ' ' . $this->nom;
     }
+    public function clientPacks()
+    {
+        return $this->hasMany(ClientPack::class);
+    }
 }

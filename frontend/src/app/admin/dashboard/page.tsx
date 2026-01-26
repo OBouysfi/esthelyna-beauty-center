@@ -266,7 +266,7 @@ const loadDashboard = async () => {
                       {rdv.statut}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mb-2 ml-10">{rdv.prestation?.nom || 'Service non spécifié'}</p>
+                  <p className="text-xs text-gray-600 mb-2 ml-10">{rdv.pack?.nom || 'Pack non défini'}</p>
                   <div className="flex items-center gap-3 text-xs text-gray-500 ml-10">
                     <span className="flex items-center gap-1">
                       <ClockIcon className="h-3.5 w-3.5" />
@@ -323,7 +323,7 @@ const loadDashboard = async () => {
                 <p className="text-sm font-semibold text-gray-900">
                   {prochainRdv.client?.prenom} {prochainRdv.client?.nom}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">{prochainRdv.prestation?.nom || 'Service non spécifié'}</p>
+                <p className="text-xs text-gray-600 mt-1">{prochainRdv.pack?.nom || 'Pack non défini'}</p>
                 <div className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200">
                   <p className="mb-1">{formatDate(prochainRdv.date_heure)}</p>
                   <div className="flex items-center gap-2">

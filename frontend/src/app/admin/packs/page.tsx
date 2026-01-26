@@ -12,23 +12,31 @@ import {
   MagnifyingGlassIcon,
   PencilIcon,
   TrashIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon
+  MapPinIcon,
 } from '@heroicons/react/24/outline';
+
+const CATEGORIES = [
+  { id: 'all', nom: 'Toutes', color: 'bg-gray-50 text-gray-700', badge: 'bg-gray-500' },
+  { id: 'cavitation', nom: 'Cavitation', color: 'bg-yellow-50 text-yellow-700', badge: 'bg-yellow-500' },
+  { id: 'laser', nom: 'Laser', color: 'bg-blue-50 text-blue-700', badge: 'bg-blue-500' },
+  { id: 'lumiere_pulsee', nom: 'Lumière Pulsée', color: 'bg-purple-50 text-purple-700', badge: 'bg-purple-500' },
+  { id: 'cryo', nom: 'Cryo', color: 'bg-cyan-50 text-cyan-700', badge: 'bg-cyan-500' },
+  { id: 'presso', nom: 'Presso', color: 'bg-green-50 text-green-700', badge: 'bg-green-500' },
+  { id: 'radiofriconce', nom: 'Radio Fréquence', color: 'bg-red-50 text-red-700', badge: 'bg-red-500' },
+  { id: 'carban', nom: 'Carban Pell', color: 'bg-orange-50 text-orange-700', badge: 'bg-orange-500' },
+  { id: 'micro', nom: 'Micro', color: 'bg-pink-50 text-pink-700', badge: 'bg-pink-500' },
+  { id: 'autres', nom: 'Autres', color: 'bg-indigo-50 text-indigo-700', badge: 'bg-indigo-500' },
+];
 
 export default function PacksPage() {
   const router = useRouter();
   const [packs, setPacks] = useState([]);
   const [filteredPacks, setFilteredPacks] = useState([]);
-  const [paginatedPacks, setPaginatedPacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterActif, setFilterActif] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [selectedPack, setSelectedPack] = useState<any>(null);
-  
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -43,10 +51,11 @@ export default function PacksPage() {
     setLoading(true);
     try {
       const { data } = await api.get('/packs');
-      setPacks(data);
-      setFilteredPacks(data);
+      const packsData = data.data || data;
+      setPacks(packsData);
+      setFilteredPacks(packsData);
     } catch (error) {
-      console.error('Erreur chargement:', error);
+      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -57,321 +66,202 @@ export default function PacksPage() {
 
     if (search.trim()) {
       const searchLower = search.toLowerCase();
-      filtered = filtered.filter((p: any) =>
-        p.nom?.toLowerCase().includes(searchLower) ||
-        p.description?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter((pack: any) =>
+        pack.nom?.toLowerCase().includes(searchLower)
       );
     }
 
-    if (filterActif !== 'all') {
-      filtered = filtered.filter((p: any) => p.actif === (filterActif === '1'));
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((pack: any) => pack.categorie === categoryFilter);
     }
 
     setFilteredPacks(filtered);
-    setCurrentPage(1);
-  }, [search, filterActif, packs]);
-
-  useEffect(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    setPaginatedPacks(filteredPacks.slice(startIndex, endIndex));
-  }, [filteredPacks, currentPage]);
-
-  const totalPages = Math.ceil(filteredPacks.length / itemsPerPage);
-
-  const toggleActif = async (pack: any) => {
-    const newActif = !pack.actif;
-    
-    setPacks(packs.map((p: any) =>
-      p.id === pack.id ? { ...p, actif: newActif } : p
-    ));
-
-    try {
-      await api.patch(`/packs/${pack.id}/toggle`);
-    } catch (error) {
-      setPacks(packs.map((p: any) =>
-        p.id === pack.id ? { ...p, actif: !newActif } : p
-      ));
-      
-      Swal.fire({
-        icon: 'error',
-        title: 'Erreur',
-        text: 'Impossible de modifier le statut',
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm'
-        }
-      });
-    }
-  };
+  }, [search, categoryFilter, packs]);
 
   const handleDelete = async (pack: any) => {
     const result = await Swal.fire({
-      title: 'Êtes-vous sûr?',
-      html: `Voulez-vous supprimer le pack <strong>${pack.nom}</strong>?`,
+      title: 'Supprimer?',
+      text: pack.nom,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Oui, supprimer',
-      cancelButtonText: 'Annuler',
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Non',
       buttonsStyling: false,
       customClass: {
-        confirmButton: 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm mr-2',
-        cancelButton: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium text-sm'
+        confirmButton: 'px-4 py-2 bg-red-600 text-white rounded-lg mr-2',
+        cancelButton: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-lg'
       }
     });
 
     if (result.isConfirmed) {
       try {
         await api.delete(`/packs/${pack.id}`);
-        
         setPacks(packs.filter((p: any) => p.id !== pack.id));
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Supprimé!',
-          timer: 1500,
-          showConfirmButton: false
-        });
+        Swal.fire('Supprimé!', '', 'success');
       } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Impossible de supprimer le pack',
-          confirmButtonText: 'OK',
-          buttonsStyling: false,
-          customClass: {
-            confirmButton: 'px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium text-sm'
-          }
-        });
+        Swal.fire('Erreur', '', 'error');
       }
     }
   };
 
-  const handlePackSaved = (savedPack: any) => {
-    if (selectedPack) {
-      setPacks(packs.map((p: any) => 
-        p.id === savedPack.id ? savedPack : p
-      ));
-    } else {
-      setPacks([savedPack, ...packs]);
-    }
-
-    setShowModal(false);
-    setSelectedPack(null);
+  const getCategoryData = (cat: string) => {
+    return CATEGORIES.find(c => c.id === cat) || CATEGORIES[0];
   };
 
   return (
     <AdminLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Packs & Forfaits</h1>
-          <p className="text-xs text-gray-600 mt-0.5">Gérez vos offres groupées</p>
-        </div>
-        
-        <button
-          onClick={() => {
-            setSelectedPack(null);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xs font-medium"
-        >
-          <PlusIcon className="h-3.5 w-3.5" />
-          Nouveau Pack
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-3">
-          <p className="text-xs text-gray-500 mb-0.5">Total Packs</p>
-          <p className="text-lg font-bold text-gray-900">{packs.length}</p>
+      {/* Header simple */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestion des Packs</h1>
+            <p className="text-sm text-gray-500 mt-1">{packs.length} pack(s) au total</p>
+          </div>
+          
+          <button
+            onClick={() => {
+              setSelectedPack(null);
+              setShowModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0C4DA0] text-white rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Nouveau Pack
+          </button>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-3">
-          <p className="text-xs text-green-500 mb-0.5">Actifs</p>
-          <p className="text-lg font-bold text-green-600">{packs.filter((p: any) => p.actif).length}</p>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-3">
-          <p className="text-xs text-gray-500 mb-0.5">Inactifs</p>
-          <p className="text-lg font-bold text-gray-600">{packs.filter((p: any) => !p.actif).length}</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-3 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+        {/* Search & Filters */}
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="relative mb-3">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher..."
-              className="w-full pl-8 pr-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0C4DA0] focus:border-[#0C4DA0] transition-all text-sm"
             />
           </div>
 
-          <select
-            value={filterActif}
-            onChange={(e) => setFilterActif(e.target.value)}
-            className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="1">Actifs</option>
-            <option value="0">Inactifs</option>
-          </select>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategoryFilter(cat.id)}
+                className={`px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
+                  categoryFilter === cat.id
+                    ? cat.color + ' border-2 border-current'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {cat.nom}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Packs Grid */}
+      {/* Packs Grid - Clean & Simple */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600"></div>
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#0C4DA0] mb-3"></div>
+          <p className="text-sm text-gray-600">Chargement...</p>
         </div>
-      ) : paginatedPacks.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+      ) : filteredPacks.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <CubeIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-xs text-gray-600 mb-3">Aucun pack trouvé</p>
+          <h3 className="text-base font-semibold text-gray-900 mb-2">Aucun pack</h3>
+          <p className="text-sm text-gray-500 mb-4">Créez votre premier pack</p>
           <button
             onClick={() => setShowModal(true)}
-            className="px-3 py-2 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg text-xs font-medium"
+            className="px-4 py-2 bg-[#0C4DA0] text-white rounded-lg font-medium hover:bg-blue-700 inline-flex items-center gap-2 text-sm"
           >
+            <PlusIcon className="h-5 w-5" />
             Créer un pack
           </button>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            {paginatedPacks.map((pack: any) => (
-              <div key={pack.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">{pack.nom}</h3>
-                    {pack.description && (
-                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{pack.description}</p>
-                    )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredPacks.map((pack: any) => {
+            const catData = getCategoryData(pack.categorie);
+            
+            return (
+              <div 
+                key={pack.id}
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+              >
+                {/* Header */}
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-2 flex-1">
+                      {pack.nom}
+                    </h3>
+                    <span className={`${catData.badge} px-2 py-1 rounded text-white text-xs font-medium whitespace-nowrap`}>
+                      {catData.nom}
+                    </span>
                   </div>
                   
-                  <div 
-                    onClick={() => toggleActif(pack)}
-                    className={`w-9 h-5 rounded-full cursor-pointer transition-all duration-200 relative flex-shrink-0 ml-2 ${
-                      pack.actif ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
-                    title={pack.actif ? 'Actif' : 'Inactif'}
-                  >
-                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-200 ${
-                      pack.actif ? 'right-0.5' : 'left-0.5'
-                    }`}></div>
-                  </div>
+                  {/* Zone - Petit badge */}
+                  {pack.zones && (
+                    <div className="inline-flex items-center gap-1 bg-blue-50 px-2 py-1 rounded text-xs font-medium text-blue-700">
+                      <MapPinIcon className="h-3 w-3" />
+                      {pack.zones} zone{pack.zones > 1 ? 's' : ''}
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2 mb-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Prix:</span>
-                    <span className="font-bold text-amber-600">{pack.prix} DH</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Séances:</span>
-                    <span className="font-bold text-gray-900">{pack.nombre_seances_total}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Validité:</span>
-                    <span className="font-bold text-gray-900">{pack.validite_jours} jours</span>
-                  </div>
-                </div>
-
-                {pack.prestations && pack.prestations.length > 0 && (
-                  <div className="mb-3 pb-3 border-t border-gray-100 pt-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">Prestations incluses:</p>
-                    <div className="space-y-1">
-                      {pack.prestations.map((p: any) => (
-                        <div key={p.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600">{p.nom}</span>
-                          <span className="text-gray-900 font-medium">{p.pivot.nombre_seances}x</span>
-                        </div>
-                      ))}
+                {/* Body */}
+                <div className="p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 mb-1">Prix</p>
+                      <p className="text-md font-bold text-[#0C4DA0]">{pack.prix} DH</p>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 mb-1">Séances</p>
+                      <p className="text-md font-bold text-gray-700">{pack.nombre_seances}</p>
                     </div>
                   </div>
-                )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedPack(pack);
-                      setShowModal(true);
-                    }}
-                    className="flex-1 p-1.5 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg hover:shadow-md transition-all text-xs font-medium"
-                  >
-                    <PencilIcon className="h-3.5 w-3.5 mx-auto" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(pack)}
-                    className="flex-1 p-1.5 bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white rounded-lg hover:shadow-md transition-all text-xs font-medium"
-                  >
-                    <TrashIcon className="h-3.5 w-3.5 mx-auto" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between">
-              <p className="text-xs text-gray-600">
-                {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, filteredPacks.length)} sur {filteredPacks.length}
-              </p>
-              
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <ChevronLeftIcon className="h-3.5 w-3.5 text-gray-600" />
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  {/* Actions */}
+                  <div className="flex gap-2">
                     <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-2.5 py-1 text-xs font-medium rounded-lg ${
-                        currentPage === page
-                          ? 'bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(35,70%,45%)] text-white'
-                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
+                      onClick={() => {
+                        setSelectedPack(pack);
+                        setShowModal(true);
+                      }}
+                      className="flex-1 py-2 bg-[#0C4DA0] text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2 transition-colors text-sm"
                     >
-                      {page}
+                      <PencilIcon className="h-4 w-4" />
+                      Modifier
                     </button>
-                  ))}
+                    <button
+                      onClick={() => handleDelete(pack)}
+                      className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <ChevronRightIcon className="h-3.5 w-3.5 text-gray-600" />
-                </button>
               </div>
-            </div>
-          )}
-        </>
+            );
+          })}
+        </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <ModalPack
           pack={selectedPack}
+          categories={CATEGORIES}
           onClose={() => {
             setShowModal(false);
             setSelectedPack(null);
           }}
-          onSuccess={handlePackSaved}
+          onSuccess={() => {
+            setShowModal(false);
+            setSelectedPack(null);
+            loadPacks();
+          }}
         />
       )}
     </AdminLayout>
